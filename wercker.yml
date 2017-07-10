@@ -8,7 +8,7 @@ build:
         code: |
             $(git clone https://github.com/digitalcraftsman/hugo-type-theme.git ./themes/hugo-type-theme)
     - arjen/hugo-build:
-        version: "1.19.0"
+        version: "0.25"
         theme: hugo-type-theme
         flags: --buildDrafts=true
 
