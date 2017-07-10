@@ -1,0 +1,14 @@
+box: debian
+build:
+  steps:
+    - install-packages:
+        packages: git
+    - script:
+        name: download theme
+        code: |
+            $(git clone https://github.com/digitalcraftsman/hugo-type-theme.git ./themes/hugo-type-theme)
+    - arjen/hugo-build:
+        version: "1.19.0"
+        theme: hugo-type-theme
+        flags: --buildDrafts=true
+
