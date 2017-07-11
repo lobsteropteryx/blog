@@ -10,7 +10,7 @@ build:
     - arjen/hugo-build:
         version: "0.25"
         theme: hugo-type-theme
-        flags: --buildDrafts=true
+        flags: --buildDrafts=false
 deploy:
   steps:
     - install-packages:
