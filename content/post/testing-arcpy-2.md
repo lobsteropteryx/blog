@@ -1,7 +1,7 @@
 +++
 date = "2017-07-11T00:00:00+00:00"
 draft = false
-title = "Testing with ArcPy: Isolation and Mocking""
+title = "Testing with ArcPy: Isolation and Mocking"
 +++
 
 [Test fixtures]() can help us run our each of our tests against a clean set of known data, but arcpy can still throw a few curve balls at us--there are global singletons we need to be aware of (i.e., `arcpy.env`), and many GP tools can have side effects (such as changing the current working directory) or limitations of their own (i.e., the [Project](http://pro.arcgis.com/en/pro-app/tool-reference/data-management/project.htm) and [Copy](http://pro.arcgis.com/en/pro-app/tool-reference/data-management/copy.htm) tools don't support in-memory workspaces).  In addition, just loading arcpy has a significant performance cost, and we want our tests to be as fast as possible.
