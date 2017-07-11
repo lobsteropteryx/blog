@@ -1,6 +1,6 @@
 +++
 date = "2017-07-04T00:00:00+00:00"
-draft = true
+draft = false
 title = "Testing with ArcPy: Test Driving Geodatabase Changes Using Fixtures"
 +++
 
