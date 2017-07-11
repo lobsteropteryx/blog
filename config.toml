@@ -1,4 +1,4 @@
-baseurl = "http://replace-this-with-your-domain.com/"
+baseurl = "http://notesfromthelifeboat.com/"
 languageCode = "en-us"
 title = "Notes from the Lifeboat"
 theme = "hugo-type-theme"
