@@ -1,8 +1,6 @@
 box: debian
 build:
   steps:
-    - install-packages:
-        packages: git ssh-client
     - script:
         name: download theme
         code: |
@@ -11,6 +9,10 @@ build:
         version: "0.25"
         theme: hugo-type-theme
         flags: --buildDrafts=true
+deploy:
+  steps:
+    - install-packages:
+        packages: git ssh-client
     - lukevivier/gh-pages@0.2.1:
         token: $GIT_TOKEN
         domain: notesfromthelifeboat.com
