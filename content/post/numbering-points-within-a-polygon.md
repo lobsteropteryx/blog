@@ -10,7 +10,7 @@ There are lots of things that I don't like about PL/SQL, but I often prefer to d
 
 In this case, we had  a set of polygons ("PPAs") that needed to be assigned a value based on the county they fell in, as well as being uniquely numbered within that county.
 
-<code>
+```sql
         select /*+ ordered use_nl (t,c) use_nl (t,p) */
         objectid,
         state,
@@ -32,6 +32,6 @@ In this case, we had  a set of polygons ("PPAs") that needed to be assigned a va
           and sdo_geom.relate(c.shape, 'anyinteract', sdo_geom.sdo_centroid(p.shape, 0.005), 0.005) = 'TRUE'
         ) p
         order by state, county_name, rnum
-</code>
+```
 
 Ordering by the centroid X and Y values in the partition clause is important; without that, the polygons don't get numbered in a deterministic way.  In this case, the polygons were generated daily by a decision support system, and without ordering the blocks spatially, the numbers within each county would be swapped around each day.
