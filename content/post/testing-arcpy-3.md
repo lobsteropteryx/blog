@@ -9,48 +9,6 @@ Javascript developers who use [npm] will be familiar with most of these ideas, b
 
 ## Virtual Environment
 
-[Virtualenv](https://virtualenv.pypa.io/en/stable/) allows you to create a repeatable, isolated environment for your project and its dependencies, without worrying about what packages and versions are installed globally on your development machine.  This is bog-standard for python projects, and is [included](https://docs.python.org/3/library/venv.html) in the standard library at 3.3.
-
-If you're still using python 2.7, you'll need to install virtualenv separately, like so:
-
-```bash
-pip install virtualenv
-```
-
-Now we can create a virtual environment, but there are a couple of specific things we need in order to accomodate arcpy. 
-
-First, we want to to tell `virtualenv` which version of python to use; it's often the case that we'll have multiple versions installed, especially if we've upgraded ArcGIS.  We can do that using the `--python` flag.
-
-```bash
-virtualenv --python C:/Python27/ArcGIS10.5/python.exe venv
-```
-
-In addition, `arcpy` is installed globally, and we need to have access to it in our virtual environment.  The simplest way to do that is to expose *all* globally installed packages in our virtual environment, via the `--system-site-packages` flag:
-
-```bash
-virtualenv --python C:/Python27/ArcGIS10.5/python.exe --system-site-packages venv
-```
-
-If we really need isolation we can link arcpy, along with its dependencies.  ArcMap ships with a .pth file already, which we can copy into our local virtual environment:
-
-```bash
-cp c:/Python27/ArcGIS10.5/Lib/site-packages/Desktop10.5.pth venv/Lib/site-packages/
-```
-
-The arcpy module depends on numpy; we can use a link to our global module (if you're using a windows `cmd` shell instead of gitbash, use `mklink` instead):
-
-```bash
-ln -s c:/Python27/ArcGIS10.5/Lib/site-packages/numpy venv/Lib/site-packages/numpy
-```
-
-Once the virtual environment is created, we activate it:
-
-```bash
-source venv/Scripts/activate
-```
-
-Now any additional dependencies we install will only be installed to our local virtual environment, and not pollute the global site-packages.
-
 ## Gitignore
 
 Pulling in the [standard .gitignore](https://github.com/github/gitignore/blob/master/Python.gitignore) file right from the start will keep a lot of junk out of your repository--`.pyc` files, your virtual environment, and any editor-specific files don't need to be checked into version control.  If you want an easy tool to manage .gitignore templates, try [getignore](getignore.md).
