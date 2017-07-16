@@ -6,7 +6,7 @@ title = "Using Virtualenv with ArcPy"
 
 [Virtualenv](https://virtualenv.pypa.io/en/stable/) allows you to create a repeatable, isolated environment for your project and its dependencies, without worrying about what packages and versions are installed globally on your development machine.  This is a standard tool for most python projects, but since arcpy is installed as a separate, global package, using virtual environments is a little more difficult.
 
-There are a couple of approaches to tackling this problem; either adding a [.pth file](https://my.usgs.gov/confluence/display/cdi/Calling+arcpy+from+an+external+virtual+Python+environment) to the local virtualenv, or by using the `--system-site-packages` flag.  Both of these have some disadvantages--the first requires manual modification of the virtual environment and requires storing the `.pth` file separately, and the second brings in all the global dependencies into each virtual environment.
+There are a couple of approaches to tackling this problem; either adding a [.pth file](https://my.usgs.gov/confluence/display/cdi/Calling+arcpy+from+an+external+virtual+Python+environment) to the local virtualenv, or by using the `--system-site-packages` flag.  Both of these have some disadvantages--the first requires manual modification of the virtual environment and storing the `.pth` file separately, and the second brings in **all** the global dependencies into each virtual environment.
 
 A third possibility is to use the [site](https://docs.python.org/2.7/library/site.html) module, which will allow us to selectively expose global packages to all of our virtual environments; this is the approach we'll take.
 
