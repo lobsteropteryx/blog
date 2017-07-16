@@ -6,7 +6,7 @@ title = "Using Virtualenv with ArcPy"
 
 [Virtualenv](https://virtualenv.pypa.io/en/stable/) allows you to create a repeatable, isolated environment for your project and its dependencies, without worrying about what packages and versions are installed globally on your development machine.  This is a standard tool for most python projects, but since arcpy is installed as a separate, global package, using virtual environments is a little more difficult.
 
-There are a couple of approaches to tackling this problem; either adding a [.pth file](https://my.usgs.gov/confluence/display/cdi/Calling+arcpy+from+an+external+virtual+Python+environment) to the local virtualenv, or by using the `--system-site-packages` flag.  Both of these have some disadvantages--the first requires manual modification of the virtual environment and storing the `.pth` file separately, and the second brings in **all** the global dependencies into each virtual environment.
+There are a couple of approaches to tackling this problem; either adding a [.pth file](https://my.usgs.gov/confluence/display/cdi/Calling+arcpy+from+an+external+virtual+Python+environment) to the local virtualenv, or by using the `--system-site-packages` flag.  Both of these have some disadvantages--the first requires manual modification of the virtual environment and storing the `.pth` file separately, and the second brings in all the global dependencies into your virtual environment.
 
 A third possibility is to use the [site](https://docs.python.org/2.7/library/site.html) module, which will allow us to selectively expose global packages to all of our virtual environments; this is the approach we'll take.
 
@@ -22,7 +22,7 @@ pip install virtualenv
 
 Since `arcpy` is installed globally and isn't available as an independent package, we need to allow access to it in our virtual environment.  We can do this by creating a `sitecustomize.py` file; this will allow us to specify a subset of the globally installed packages, and that subset will be included in every virtual environment we create.   At a minimum, we need arcpy and numpy, but you can add additional packages if you need to.
 
-First we'll create a directory to hold our subset; it doesn't matter where we put it or what its called, but for this example, it will be `C:/Python27/ARcGIS10.5/arcpy_includes`.
+First we'll create a directory to hold our subset; it doesn't matter where we put it or what its called, but for this example, it will be `C:/Python27/ArcGIS10.5/arcpy_includes`.
 
 We can add the required arcpy directories by copying the global `Desktop10.5.pth` file; this is just a list of directories for python to search, and it looks like this:
 
