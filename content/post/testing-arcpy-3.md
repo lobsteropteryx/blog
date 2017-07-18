@@ -1,13 +1,45 @@
++++
+date = "2017-07-04T00:00:00+00:00"
+draft = true
+title = "Setting up a Python Project"
++++
+
 # Setting up a Python Project
 
-One thing I've seen a lot of GIS developers struggle with is creating a good project structure when building Python applications; often there's a transition from one enormous file with a single method to a "real" software project--modular design, well defined dependencies, etc.  
+One thing I've seen a lot of GIS developers struggle with is creating a good project structure when building Python applications; often there's a transition from one enormous file with a single method to a "real" software project--modular design, well defined dependencies, etc.
 
-Javascript developers who use [npm] will be familiar with most of these ideas, but maybe not the tools.  So in a nutshell, here is how I would build a new Python project using arcpy today:
+Before diving into the details, there are several "big picture" goals that drive the technical choices and tools we use; in general, we'd like our projects to be **easy to develop against**, and **easy to consume**.
+
+**Easy to develop against** means that our projects should have:
+
+* a consistent structure
+* an easy way to stand up a development environment from scratch
+* a consistent set of tooling and workflow
+* an easy way to manage dependencies
+* a quick way to give feedback to the developer.  This means tests!
+
+**Easy to consume** means that we want:
+
+* a very low barrier to entry, ideally just `pip install`
+* good documentation, **with examples!**
+* a consistent experience across environments
+* intuitive naming and patterns that follow [conventions](https://www.python.org/dev/peps/pep-0008/)
+
+Javascript developers who use [npm](https://www.npmjs.com/) will be familiar with most of these ideas, but maybe not the tools.  So in not particular order, here are a few suggestions that even the smallest python projects can benefit from.
 
 ## Pip
 
+If you aren't using a package manager to bring in your dependencies, you're making your life harder.  Modern python versions include [pip](https://pip.pypa.io/en/stable/) by default; if you're using a python version older than 2.7.9 (that's ArcMap 10.3 and older), you'll need to [install it](https://pip.pypa.io/en/stable/installing/#installing-with-get-pip-py).
+
+With pip, you (and your users!) can bring in third-party libraries automatically, without having to rely on them already having been installed.  Rather than reading through documentation (or the source code!) and manually hunting down `requests`, `beautiful_soup`, etc, a developer can simply do
+
+```bash
+pip install .
+```
+
 
 ## Virtual Environment
+
 
 ## Gitignore
 
