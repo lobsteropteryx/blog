@@ -1,3 +1,9 @@
++++
+date = "2017-07-04T00:00:00+00:00"
+draft = true
+title = "Contracts"
++++
+
 Ask someone in the building trades how they feel about taking jobs where:
 
 * well-meaning homeowners have tried to save money by doing their own work, and are now calling in a professional
@@ -9,6 +15,6 @@ Often a good contractor won't bid on these jobs at all, because of risk.  If the
 As a contract software developer, I keep finding myself in the following situations:
 
 * I'm asked to provide a quote for a firm fixed price contract, based on almost no information
-* I'm working on systems built by someone who was obviously unfamiliar with stadard architectural principles 
-*  
+* I'm working on systems built by someone who was obviously unfamiliar with stadard architectural principles
+*
 
