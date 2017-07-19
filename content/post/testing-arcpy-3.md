@@ -31,15 +31,11 @@ Javascript developers who use [npm](https://www.npmjs.com/) will be familiar wit
 
 If you aren't using a package manager to bring in your dependencies, you're making your life harder.  Modern python versions include [pip](https://pip.pypa.io/en/stable/) by default; if you're using a python version older than 2.7.9 (that's ArcMap 10.3 and older), you'll need to [install it](https://pip.pypa.io/en/stable/installing/#installing-with-get-pip-py).
 
-With pip, you (and your users!) can bring in third-party libraries automatically, without having to rely on them already having been installed.  Rather than reading through documentation (or the source code!) and manually hunting down `requests`, `beautiful_soup`, etc, a developer can simply do
-
-```bash
-pip install .
-```
-
+With pip, you (and your users!) can bring in third-party libraries automatically, without having to rely on them already having been installed.  Rather than reading through documentation (or the source code!) and manually hunting down `requests`, `beautiful_soup`, etc.
 
 ## Virtual Environment
 
+GIS machines get clogged up over time, even when
 
 ## Gitignore
 
