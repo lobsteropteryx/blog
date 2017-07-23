@@ -6,36 +6,36 @@ title = "Setting up a Python Project"
 
 # Setting up a Python Project
 
-One thing I've seen a lot of GIS developers struggle with is creating a good project structure when building Python applications; often there's a transition from one enormous file with a single method to a "real" software project--modular design, well defined dependencies, etc.
+One thing I've seen a lot of GIS developers struggle with is creating a good project structure when building Python applications; often there's a transition from one enormous file with a single method to a "real" software project, with modular design, well defined dependencies, and the necessary tooling.
 
-Before diving into the details, there are several "big picture" goals that drive the technical choices and tools we use; in general, we'd like our projects to be **easy to develop against**, and **easy to consume**.
+There are several "big picture" goals that drive the technical choices and tools we use; in general, we'd like our projects to be **easy to develop against**, and **easy to consume**.
 
 **Easy to develop against** means that our projects should have:
 
 * a consistent structure
 * an easy way to stand up a development environment from scratch
-* a consistent set of tooling and workflow
 * an easy way to manage dependencies
 * a quick way to give feedback to the developer.  This means tests!
 
 **Easy to consume** means that we want:
 
 * a very low barrier to entry, ideally just `pip install`
-* good documentation, **with examples!**
 * a consistent experience across environments
 * intuitive naming and patterns that follow [conventions](https://www.python.org/dev/peps/pep-0008/)
 
-Javascript developers who use [npm](https://www.npmjs.com/) will be familiar with most of these ideas, but maybe not the tools.  So in not particular order, here are a few suggestions that even the smallest python projects can benefit from.
+To achieve these goals, we can rely on some stock tools and conventions; [Pip](https://pip.pypa.io/en/stable/), [Virtualenv](http://python-guide-pt-br.readthedocs.io/en/latest/dev/virtualenvs/) and [Pytest] help with development, and a standard [Setup] file and structure make it easy for our users to consume the tools that we build.
+
+Many developers may be familiar with these ideas, but maybe not the tools; python is often somewhat of a second-class citizen in the GIS world, and we get away with things that we would never even consider doing in a .NET or javascript project.   These are tools and techniques that even the smallest python projects can benefit from; outside of the GIS world, they would be considered standard for almost every python application. 
 
 ## Pip
 
 If you aren't using a package manager to bring in your dependencies, you're making your life harder.  Modern python versions include [pip](https://pip.pypa.io/en/stable/) by default; if you're using a python version older than 2.7.9 (that's ArcMap 10.3 and older), you'll need to [install it](https://pip.pypa.io/en/stable/installing/#installing-with-get-pip-py).
 
-With pip, you (and your users!) can bring in third-party libraries automatically, without having to rely on them already having been installed.  Rather than reading through documentation (or the source code!) and manually hunting down `requests`, `beautiful_soup`, etc.
+With pip, you can bring in third-party libraries automatically, without having to rely on them already having been installed.  Rather than reading through documentation (or the source code!) and manually hunting down `requests`, `beautiful_soup`, etc.
 
-## Virtual Environment
+## Virtualenv
 
-GIS machines get clogged up over time, even when
+GIS machines tend to get clogged up over time; a small number of staff responsible for a large number of projects is the norm, and those project tend to live a long time, requiring periodic maintenance.  Rather than installing all the dependencies of all our projects into the global `site_packages` directory, we can use [virtual environments](/post/arcpy-virtualenv) to keep a separate set of dependencies and library versions for each project we work on.
 
 ## Gitignore
 
@@ -56,7 +56,7 @@ The typical python project has a very simple directory structure--a top-level di
     └── test_my_module.py
 ```
 
-I generally try to keep my python projects fairly flat--each .py file will act as its own module.  If you need more nested directories, don't forget to add an [__init__.py]https://docs.python.org/3/tutorial/modules.html#packages) file.
+I generally try to keep my python projects fairly flat--each .py file will act as its own module.  If you need more nested directories, don't forget to add an [__init__.py](https://docs.python.org/3/tutorial/modules.html#packages) file.
 
 ## Setup
 
@@ -83,9 +83,7 @@ setup(
 )
 ```
 
-`install_requires` are the dependencies our project needs to run--in this case, `arcpy` and `requests`.  `extras_require` is a list of additional dependencies used for development--our testing tools, linters, etc.
-
-**Note:** If you're using the `--system-site-packages` flag, it's a good idea to use `--ignore-installed` when installing your project dependencies; this will ensure that you get the correct version, even if the same package is installed globally.
+`install_requires` are the dependencies our project needs to run--in this case, we're using `requests`.  `extras_require` is a list of additional dependencies used for development--our testing tools, linters, etc.
 
 ## Developing against the project
 
@@ -96,7 +94,11 @@ git clone git@github.com:lobsteropteryx/testing-arcpy.git
 cd testing-arcpy
 virtualenv --python C:/Python27/ArcGIS10.5/python.exe --system-site-packages venv
 source venv/Scripts/activate
-pip install --ignore-installed .
-pip install --ingore-installed .[test]
+pip install .
+pip install .[test]
 pytest --cov=my_project tests/
 ```
+
+## Consuming the project
+
+With the `setup.py` file in place, it's easy to [publish]()
