@@ -6,9 +6,7 @@ title = "Six Essentials for a Python Project"
 
 I've seen a lot of GIS developers struggle to create a good project structure when building Python applications; often there's a transition from one enormous file with a single method to a "real" software project, with modular design, well defined dependencies, and the necessary tooling.  
 
-The goal of this post is to be a summary and short checklist; these steps can improve almost any project, and are easy to implement.  There is a wealth of great documentation about all of them; in particular, check out [The Hitchhiker's Guide to Python](http://python-guide-pt-br.readthedocs.io/en/latest/) and the [Python Packaging User's Guide](https://python-packaging-user-guide.readthedocs.io/).
-
-Even the smallest applications can benefit from these tools and conventions, and it's rare to see any real-world project that doesn't include all of the following:
+The goal of this post is to be a summary and short checklist; these steps can improve almost any project, and are easy to implement.  Used properly, they can help ease developer onboarding, promote code reuse, and reduce the time spent on boilerplate activities and code.  Even the smallest applications can benefit from these tools and conventions, and it's rare to see any real-world project that doesn't include all of the following:
 
 1. Package management via `pip`
 1. Environmental isolation using `virtualenv`
@@ -16,6 +14,8 @@ Even the smallest applications can benefit from these tools and conventions, and
 1. Standard directory structure
 1. `Setup.py` file to track versions and dependencies
 1. Test runner and scaffolding
+
+There is a wealth of great documentation about all of these tools; in particular, check out [The Hitchhiker's Guide to Python](http://python-guide-pt-br.readthedocs.io/en/latest/) and the [Python Packaging User's Guide](https://python-packaging-user-guide.readthedocs.io/).
 
 ## 1. Pip
 
@@ -29,7 +29,7 @@ GIS machines tend to get clogged up over time; a small number of staff responsib
 
 ## 3. Gitignore
 
-Pulling in the [standard .gitignore](https://github.com/github/gitignore/blob/master/Python.gitignore) file right from the start will keep a lot of junk out of your repository--`.pyc` files, your virtual environment, and any editor-specific files don't need to be checked into version control.  If you want an easy tool to manage .gitignore templates, try [getignore](/post/getignore.md).
+Pulling in the [standard .gitignore](https://github.com/github/gitignore/blob/master/Python.gitignore) file right from the start will keep a lot of junk out of your repository--`.pyc` files, your virtual environment, and any editor-specific files don't need to be checked into version control.  If you want an easy tool to manage `.gitignore` templates, try [getignore](/post/getignore.md).
 
 ## 4. Directory Structure
 
