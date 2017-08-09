@@ -18,7 +18,7 @@ It's possible to extend this approach with tools like [docker compose](https://d
 * A [SLAP](https://github.com/lobsteropteryx/slap) configuration file describing the map services we want to publish
 
 ## A Note about Support
-ESRI does not support running ArcGIS in a container (in fact they barely support AGS running on Linux, and much of the code is actually executed in [WINE](https://www.winehq.org/)).  Running AGS in a container is obviously not recommended for production systems, but it still has some utility as a test environment.
+ESRI does not support running AGS in a container (in fact they barely support running on Linux, and much of the code is actually executed in [WINE](https://www.winehq.org/)).  Running AGS in a container is obviously not recommended for production systems, but it still has some utility as a test environment.
 
 ## Base AGS Image
 First you'll need to build your base AGS images, at whichever version(s) you want to use for testing; a  set of dockerfiles and scripts with a short walkthrough is available on [github](https://github.com/lobsteropteryx/docker-esri).
