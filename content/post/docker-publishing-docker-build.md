@@ -46,4 +46,41 @@ Now we need to create an image to represent our AGS instance with a specific set
 * Install SLAP
 * Call SLAP to create a new AGS site and publish our services
 
+We can pull our data from git using a shallow copy, since we don't need the history:
+
+```bash
+git clone --depth 1 git@github.com:lobsteropteryx/slap-test.git data
+```
+
+Making python calls in an AGS linux instance is a little complex--because arcpy and many of the AGS libraries run in WINE, we *don't* want to use the system python; instead, we need to call a shell script that sets up the WINE environment, and then calls python.  This script is included with the AGS installation, and is located at `/home/arcgis/server/tools/python`.
+
+To install slap into the WINE version of `site_packages`, we use the `-m` argument of python, to call the pip module:
+
+```bash
+/home/arcgis/server/tools/python -m pip install slap
+```
+
+To call slap itself, we use a similar call, passing the slap cli as the module:
+
+```bash
+/home/arcgis/server/tools/python -m slap.cli publish --name $HOSTNAME --username=siteadmin --password=51734dm1n --site
+```
+
+The `--site` argument will create a default site before publishing any services, with the username and password we specify; this will only ever be called once when we build the image, so we don't need to worry about overwriting anything.
+
+If we want to publish over HTTPS, we also need to add the default, self-signed certificate to the trusted store on the OS; to do so, we can use openssl in a simple script:
+
+```bash
+cp /etc/pki/tls/certs/ca-bundle.crt /etc/pki/tls/certs/ca-bundle-orig.crt
+
+CERTFILE=~/sscert.pem
+echo -n | openssl s_client -host $HOSTNAME -port 6443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > $CERTFILE && \
+        cat $CERTFILE >> /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem && \
+        cat $CERTFILE >> /etc/pki/ca-trust/extracted/pem/ca-bundle.trust.crt
+```
+
+If publishing over HTTP is adequate, this step is optional.
+
+It's possible to execute these commands directly from our Dockerfile using the `RUN` command, but saving the commands as shell scripts helps keep the logic separate and allows us to test the commands outside of the container; once we have a set of scripts in place we can add them to the image using the `COPY` command and then `RUN` the scripts during the build. 
+
 
