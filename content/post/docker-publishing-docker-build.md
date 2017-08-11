@@ -1,7 +1,7 @@
 +++
-date = "2017-07-16T00:00:00+00:00"
-draft = true 
-title = "Publishing Map Services as part of a Docker Build"
+date = "2017-08-10T00:00:00+00:00"
+draft = false 
+title = "Publishing Map Services as Part of a Docker Build"
 +++
 
 A lot of [smart people](https://github.com/mraad/docker-arcgis) have worked to get ArcGIS Server (AGS) up and running in a docker container; it's a fast and convenient way to test applications that require an AGS instance to function.  
