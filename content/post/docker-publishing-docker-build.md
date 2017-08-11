@@ -126,4 +126,4 @@ slap-test-10.5
 
 We need to open some ports for AGS to work properly, but once the container is up and running, we can access it either from `localhost` (on a linux or mac machine), or from the ip address of our VM on windows.  At this point we can interact with the instance just like any other AGS server--developing and testing web applications, desktop workflows, or even server extensions.
 
-![ags](images/docker-ags.png)
+![ags](/images/docker-ags.png)

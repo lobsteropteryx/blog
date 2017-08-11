@@ -20,10 +20,10 @@ Tethering an Android phone is super easy--Just go to `settings` -> `Wireless & n
 ## Data Usage
 Based on ~6 hours of sharing via screenhero, and another hour of multi-user Hangouts, I used somewhere around 8GB of data:
 
-<img src="images/data-usage-1.png" alt="data-usage" style="width: 400px;"/>
+<img src="/images/data-usage-1.png" alt="data-usage" style="width: 400px;"/>
 
 Screensharing performance was great at full speed (~ 8Mb/s down, 1Mb/s up), but once I hit the throttle point, the bottom fell out:
 
-<img src="images/throttle.png" alt="throttle" style="width: 400px;"/>
+<img src="/images/throttle.png" alt="throttle" style="width: 400px;"/>
 
 Both screenhero and hangouts will use adaptive quality, to some extent; I didn't try rolling the quality settings down, but I'll do this experiment again, and see how much difference those settings make.

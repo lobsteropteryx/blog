@@ -6,7 +6,7 @@ title = "Homework"
 
 The other day I was called upon to help a 5th grader with her homework.  She had gotten the first two problems right, but was having some difficulty with the third one:
 
-![](images/homework.gif)
+![](/images/homework.gif)
 
 I can't help but wonder who chose that problem, and what their intention was; if it's supposed to be a way to get kids thinking about algorithms and the idea of proof, that's great.  Probably most kids would start off okay--you find all the paths and pick the shortest one.  But how do you know there's not a shorter one, that you didn't find?  Can you even expect to find all the possible paths?  I think it's probably intuitive that the number of paths might increase faster than the number of nodes, but how much faster?  And what about cycles?
 
