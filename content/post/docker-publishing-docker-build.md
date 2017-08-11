@@ -8,7 +8,7 @@ A lot of [smart people](https://github.com/mraad/docker-arcgis) have worked to g
 
 It's possible to streamline things even further by registering data and publishing services as part of the docker [build](https://docs.docker.com/engine/reference/commandline/build/) process; this allows you to keep your infrastucture, data, and service definitions under source control, and use those to build an image with all the necessary services included.  You can version this image and store it your own [registry](https://docs.docker.com/registry/), allowing developers to spin up a local, fully provisioned AGS instance in a few seconds.
 
-It's possible to extend this approach with tools like [docker compose](https://docs.docker.com/compose/) to include a database server and Portal instance, but for this example, we'll use a very simple setup:
+You can extend this approach with tools like [docker compose](https://docs.docker.com/compose/) to include a database server and Portal instance, but for this example, we'll use a very simple setup:
 
 * A base AGS image with no security or Portal--we'll use AGS 10.4
 * A single File Geodatabase (FGDB) containing our data
@@ -21,7 +21,7 @@ A full working example is available on github; the code is split across three re
 ESRI does *not* support running AGS in a container (they only barely support running on Linux, and much of the code is actually executed in [WINE](https://www.winehq.org/)).  Running AGS in a container is obviously not recommended for production systems, but it still has some utility as a test environment.
 
 ## Base AGS Image
-First you'll need to build your base AGS images, at whichever version(s) you want to use for testing; a  set of dockerfiles and scripts with a short walkthrough is available on [github](https://github.com/lobsteropteryx/docker-esri).
+First you'll need to build your base AGS images, at whichever version(s) you want to use for testing; a  set of dockerfiles and scripts with a short walkthrough is available on [github](https://github.com/lobsteropteryx/docker-esri/tree/10.4).
  
 ## Data and Map Documents
 Our data and service definitions may change independently of the infrastructure; for example, we may want to publish the same services to multiple different AGS versions, in order to test a new upgrade.  Because of this, we want to store our data in a separate repository from our dockerfiles.
@@ -30,7 +30,7 @@ For this example, we create an FGDB containing the feature classes we want to bu
 
 Note that when we save the map documents, we want to set the "[Store Relative Paths](http://desktop.arcgis.com/en/arcmap/latest/map/working-with-arcmap/referencing-data-in-the-map.htm)" checkbox, so that the map documents and data can travel together.
 
-Once you have the database and map documents created, you can check them into source control; the result should look something like [this](https://github.com/lobsteropteryx/slap-test).
+Once you have the database and map documents created, you can check them into source control; the result should look something like [this](https://github.com/lobsteropteryx/slap-test/).
 
 ## SLAP Configuration File
 For this example, we're using [slap](https://github.com/lobsteropteryx/slap) to publish our services; you can see an example config file [here](https://github.com/lobsteropteryx/slap-test/blob/master/config.json).  
@@ -90,6 +90,8 @@ echo -n | \
 If publishing over HTTP is adequate, this step is optional.
 
 It's possible to execute these commands directly from our Dockerfile using the `RUN` command, but saving the commands as shell scripts helps keep the logic separate and allows us to test the commands outside of the container; once we have a set of scripts in place we can add them to the image using the `COPY` command and then `RUN` the scripts during the build.
+
+You can find the full Dockerfile used for this example on [github](https://github.com/lobsteropteryx/slap-docker-test/tree/10.4).
 
 ## Building the Image
 
