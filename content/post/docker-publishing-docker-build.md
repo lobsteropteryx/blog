@@ -10,10 +10,12 @@ It's possible to streamline things even further by registering data and publishi
 
 It's possible to extend this approach with tools like [docker compose](https://docs.docker.com/compose/) to include a database server and Portal instance, but for this example, we'll use a very simple setup:
 
-* A base AGS image with no security or Portal
+* A base AGS image with no security or Portal--we'll use AGS 10.4
 * A single File Geodatabase (FGDB) containing our data
 * A set of map documents sourced to the above FGDB
 * A [slap](https://github.com/lobsteropteryx/slap) configuration file describing the map services we want to publish
+
+A full working example is available on github; the code is split across three repositories for the [base images](https://github.com/lobsteropteryx/docker-esri/tree/10.4), [data](https://github.com/lobsteropteryx/slap-test) and [custom image](https://github.com/lobsteropteryx/slap-docker-test/tree/10.4).
 
 ### A Note about Support
 ESRI does *not* support running AGS in a container (they only barely support running on Linux, and much of the code is actually executed in [WINE](https://www.winehq.org/)).  Running AGS in a container is obviously not recommended for production systems, but it still has some utility as a test environment.
@@ -122,4 +124,6 @@ docker run \
 slap-test-10.5
 ```
 
-We need to open some ports for AGS to work properly, but once the container is up and running, we can access it either from `localhost` (on a linux or mac machine), or from the ip address of our VM on windows.
+We need to open some ports for AGS to work properly, but once the container is up and running, we can access it either from `localhost` (on a linux or mac machine), or from the ip address of our VM on windows.  At this point we can interact with the instance just like any other AGS server--developing and testing web applications, desktop workflows, or even server extensions.
+
+![ags](images/docker-ags.png)
