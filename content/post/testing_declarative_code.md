@@ -1,6 +1,6 @@
 +++
 date = "2017-12-17T00:00:00+00:00"
-draft = true 
+draft = false 
 title = "Testing Declarative Code"
 +++
 
@@ -130,7 +130,8 @@ In general, I view integration tests as a _sometimes_ necessary evil, and I want
 
 For us, the system in question was a CLI tool that inserts records to a local database, and is made up of three python modules.  Our top-level acceptance tests verify the full behavior for each entity, and the entire test suite runs locally in about 20 seconds.
 
-That's not a system that makes me want another level of integration tests--to me, the benefits just don't outweigh the costs.  It's worth going back to Martin Fowler's original article; many of the scenarios outlined there don't apply, and he even adds a footnote:
+That's not a system that makes me want another level of integration tests--to me, the benefits just don't outweigh the costs.  If you look at Martin Fowler's original article, many of the scenarios that he outlines just don't apply, and he even adds a footnote:
 
->>>The pyramid is based on the assumption that broad-stack tests are expensive, slow, and brittle compared to more focused tests, such as unit tests. While this is usually true, there are exceptions. If my high level tests are fast, reliable, and cheap to modify - then lower-level tests aren't needed.
+>The pyramid is based on the assumption that broad-stack tests are expensive, slow, and brittle compared to more focused tests, such as unit tests. While this is usually true, there are exceptions. If my high level tests are fast, reliable, and cheap to modify - then lower-level tests aren't needed.
 
+I believe that treating the test pyramid as something that must be religiously followed is a mistake; the context matters immensely, and I would argue that most simple systems don't need multiple tiers of tests. 
