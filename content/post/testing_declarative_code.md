@@ -134,4 +134,6 @@ That's not a system that makes me want another level of integration tests--to me
 
 >The pyramid is based on the assumption that broad-stack tests are expensive, slow, and brittle compared to more focused tests, such as unit tests. While this is usually true, there are exceptions. If my high level tests are fast, reliable, and cheap to modify - then lower-level tests aren't needed.
 
-I believe that treating the test pyramid as something that must be religiously followed is a mistake; the context matters immensely, and I would argue that most simple systems don't need multiple tiers of tests. 
+I believe that treating the test pyramid as something that must be religiously followed is a mistake; the context matters immensely, and I would argue that many simple systems don't need three tiers of tests. 
+
+From the Lean point of view, tests are a necessary waste, and they surely have a cost.  If I'm satisfied with my suite of top-level acceptance tests, I don't think it makes sense to write additional integration tests just so that I can say that my test suite is pyramid shaped.
