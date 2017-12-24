@@ -10,7 +10,7 @@ googleAnalytics = "UA-27980065-1"
 paginate = 10
 # Comment the themesDir option if you use this theme in production
 # themesDir = "../.."
-
+pygmentsCodeFences = true
 
 [params]
 	author = "Ian Firkin"

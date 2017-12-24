@@ -36,13 +36,13 @@ We'll tie the individual build steps together via PowerShell.
 
 The first step is simple--we just need to build our Tabular Model project.  we can do this easily from PowerShell using MSBuild; assuming we've set up a build configuration called `validation`, it looks like this:
 
-```powershell
+```PowerShell
 msbuild TabularExample.smproj "/p:Configuration=validation" /t:Build /p:VisualStudioVersion=14.0
 ```
 
 The outputs of a successful build process look like the following:
 
-```powershell
+```PowerShell
 Mode                LastWriteTime         Length Name
 ----                -------------         ------ ----
 -a----       12/23/2017   7:45 PM           1561 Model.asdatabase
