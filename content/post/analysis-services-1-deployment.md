@@ -1,6 +1,6 @@
 +++
 date = "2017-12-23T00:00:00+00:00"
-draft = true 
+draft = false
 title = "Automating Analysis Services Tabular Projects - Part 1: Deployment"
 +++
 
@@ -12,7 +12,7 @@ In addition, we were finding a lot of errors and regressions in the measure calc
 
 We've managed to come up with reasonable solutions to both of these problems--we now have an automated deployment pipeline based on Jenkins, as well as a full suite of acceptance tests around our measures.  And because I work with a really outstanding [group of people](https://www.proactivedigitalinsights.com/our-shared-culture), I've been encouraged to share the work we've done.  
 
-This post will concentrate on our deployment, and [part 2](/post/analysis-services-2-testing) will cover the testing framework.  All of the code described in these posts is open sourced, and there is a full, working example on [github](https://github.com/lobsteropteryx/tabularexample); if anyone has better solutions to these issues, we'd love to hear about them!
+This post will concentrate on our deployment, and part 2 will cover the testing framework.  All of the code described in these posts is open sourced, and there is a full, working example on [github](https://github.com/lobsteropteryx/tabularexample); if anyone has better solutions to these issues, we'd love to hear about them!
 
 ## System Summary
 
@@ -159,9 +159,16 @@ For the most part, promoting the model through a series of environments is strai
 
 One of the pain points around promotion is changing the underlying data source for different environments; by design, the Deployment Wizard will not persist any database credentials, which means that we can't transform the data source the same way we did for the other deployment settings.  There is an additional [`Model.configsettings`](https://docs.microsoft.com/en-us/sql/analysis-services/multidimensional-models/deployment-script-files-solution-deployment-config-settings) file, but any changes to the data source credentials don't get persisted into the XMLA script.
 
-The way we worked around this issue was to create an empty cube for each environment, then set up the data source connection strings manually, once.  We can then ensure that they don't get overwritten by setting `ConfigurationSettingsDeployment` to `Retain` in our `Model.deploymentoptions` file.
+The way we worked around this issue was to create an empty cube for each environment, then set up the data source connection strings manually, once.  We can then ensure that they don't get overwritten by setting `ConfigurationSettingsDeployment` to `Retain` in our `Model.deploymentoptions` file.  Once we have the initial cube built, we can run the full deployment script as part of our CI process whenever changes are pushed to master; in Jenkins, we can [inject](https://support.cloudbees.com/hc/en-us/articles/203802500-Injecting-Secrets-into-Jenkins-Build-Jobs) the credentials, and the [script](https://github.com/lobsteropteryx/tabular-example/blob/master/deploy_model.ps1) execution looks like this:
 
-In practice, we use a single SSAS instance, with multiple in-memory databases.  Each database represents a separate environment, with its own data source, roles, etc.  That way we minimize the number of SSAS instances we have to pay for, and can deploy as many cubes as we like, just by changing our `$environment` parameter and its associated credentials.
+```powershell
+.\deploy_model.ps1 -workspace "$($ENV:WORKSPACE)" -environment "$($ENV:ENVIRONMENT)" -analysisServicesUsername "$($ENV:ANALYSIS_SERVICES_USER)" -analysisServicesPassword "$($ENV:ANALYSIS_SERVICES_PASSWORD)"
+```
+
+Note that that we're using compatibility level 1200; at 1400, the `ConfigurationSettingsDeployment` setting seems to be ignored, and the connection string is wiped out on each deployment.
+
+Once we had a way to do repeatable deployments, we worked to create a test environment where we could execute our measures against a known data set for validation.  That process will be covered in the next post.
+
 
 
 
