@@ -1,6 +1,6 @@
 +++
-date = "2017-12-23T00:00:00+00:00"
-draft = true 
+date = "2018-01-07T00:00:00+00:00"
+draft = false
 title = "Automating Analysis Services Tabular Projects - Part 2: Testing"
 +++
 
@@ -8,9 +8,9 @@ As part of my [day job](https://www.proactivedigitalinsights.com/), we've been b
 
 ## The Problem: Testing Measures
 
-In SQL terms, a [measure](https://docs.microsoft.com/en-us/sql/analysis-services/tabular-models/measures-ssas-tabular) is somewhere between a view and an analytic function; it's a calculation used to dynamically aggregate and filter report tables, and it can contain a fair bit of logic.  Measures can also depend on other measures, and they're often used to encapsulation logic, even if they won't be exposed directly to the end user.
+In SQL terms, a [measure](https://docs.microsoft.com/en-us/sql/analysis-services/tabular-models/measures-ssas-tabular) is somewhere between a view and an analytic function; it's a calculation used to dynamically aggregate and filter report tables, and it can contain a fair bit of logic.  Measures can also depend on other measures, and they're often used to encapsulate logic, even if they won't be exposed directly to the end user.
 
-In our case, we needed to work closely with business analysts to define the measures in business terms, ensure that they were implemented correctly, and protect ourselves from regressions as we build out additional reporting.  We knew from the start that we wanted a BDD-style approach using [gherkin](https://github.com/cucumber/cucumber/wiki/Gherkin), and we settled on [SpecFlow](http://specflow.org/) as our test framework.
+In our case, we needed to work closely with business analysts to define the measures in business terms, ensure that they were implemented correctly, and protect ourselves from regressions as we build out additional reporting.  We knew from the start that we wanted a [BDD](https://en.wikipedia.org/wiki/Behavior-driven_development)-style approach, and we settled on [SpecFlow](http://specflow.org/) as our test framework.
 
 ## Testing Process
 
@@ -29,6 +29,38 @@ We want to run all of our tests locally, so we need to have both SQL Server and 
 
 ## Testing Framework
 
+If you aren't familiar with BDD or SpecFlow, there is a nice walkthough [here](https://specflow.org/getting-started/).  Essentially we'll describe the desired behavior in plain text, using [Gherkin](https://cucumber.io/docs/reference); an individual test case is known as a Scenario, and multiple Scenarios are grouped into a Feature.
+
+Each Scenario has multiple Steps, and each Step will be implmented using our programming language of choice--in this case, C#.
+
+### Feature
+
+In the example project, our measure is a simple average.  The gherkin for a very basic test case might look like this:
+
+```cucumber
+Feature: AverageAge
+  Calculating the average age of people
+
+Scenario: A single person
+	Given I have persons:
+	| Name | Age |
+	| Bob  | 5   |
+	When I query for average age
+	Then I expect the result to be:
+	| Average     |
+	| 5           |
+```
+
+This scenario has three Steps--a `Given`, a `When`, and a `Then`.  We can have Visual Studio generate empty step definitions for us automatically, and fill in the implementation details.
+
+### Steps
+
+When testing Tabular measures, our Step implementations will be very similar across Scenarios and even Features--`Given` will be inserting data into the SQL database and refreshing the Tabular model; `When` will correspond to a query against the model, and `Then` will be comparing the query result against the expected values.
+
+It's normal to re-use Step definitions across Scenarios; since each of our Features will be testing a single measure, we'll typically have many scenarios that use the exact same steps, where the only difference is in the data.  To see an example of this, look at the [Feature](https://github.com/lobsteropteryx/tabular-example/blob/master/TestExample/AverageAge.feature) and [Steps](https://github.com/lobsteropteryx/tabular-example/blob/master/TestExample/AverageAgeSteps.cs) for calculating average age.
+
+Since we'll be doing the same interactions over and over again, it makes sense to extract out the common logic into a couple of helper classes--one for inserting data into the SQL database, and the second for querying data back out of the Tabular model.
+
 ## Interacting with the Database
 
 The local SQL Server instance will act as the data source for our Tabular Model; in order to set up our tests, we need two things:  A way to set up our initial schema, and a way to manipulate data in the database.
@@ -45,7 +77,7 @@ Once we have our schema in place, we need a way to delete and insert data into o
 
 ## Interacting with the Tabular Model
 
-To refresh and query the Tabular Model, we use the [ADOMDClient](https://msdn.microsoft.com/en-us/library/microsoft.analysisservices.adomdclient.aspx) library, which exposes a via a familiar set of interfaces (`Connection`, `Command`, `Adapter`, etc) for interacting with tabular data.
+To refresh and query the Tabular Model, we use the [ADOMDClient](https://msdn.microsoft.com/en-us/library/microsoft.analysisservices.adomdclient.aspx) library, which exposes a familiar set of interfaces (`Connection`, `Command`, `Adapter`, etc) for interacting with tabular data.
 
 Note:  We needed to install the [unofficial version](https://github.com/ogaudefroy/Unofficial.Microsoft.AnalysisServices.AdomdClient) of the package, as outlined [here](https://stackoverflow.com/a/44896064).
 
@@ -77,7 +109,7 @@ $env:TabularAcceptanceTestAnalysisServicesConnectionString = "Data Source=localh
 $env:TabularAcceptanceTestSqlConnectionString = "Server=localhost;Database=validation;User ID=test;Password=test;"
 ```
 
-Note that if you want to run the tests from Visual Studio, you'll need these environment variables set in the process where Visual Studio is running; one way to do this is to luanch Visual Studio from a shell with the appropriate variables set:
+Note that if you want to run the tests from Visual Studio, you'll need these environment variables set in the process where Visual Studio is running; one way to do this is to launch Visual Studio from a shell with the appropriate variables set:
 
 ```powershell
 'C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\devenv.exe'
@@ -174,5 +206,5 @@ Results (nunit3) saved as TestResult.xml
 
 ## The End Result
 
-Once we have the deployment and test scripts in place, we can integrate them with a CI server to set up a deployment pipeline.  To do this, we first deploy the new version of the model to a dedicated `validation` environment where the automated test suite is run; if all the tests pass, we automatically build and deploy again, to a staging environment.  In the staging environment, analysts can interact with the Tabular model through front-end tools like PowerBI; once the changes have been approved, we can promote the new version of the model to production.
+Once we have the deployment and test scripts in place, we can integrate them with a CI server to set up a deployment pipeline.  To do this, we first deploy the new version of the model to a dedicated `validation` environment where the automated test suite is run; if all the tests pass, we automatically build and deploy again, this time to a staging environment.  In the staging environment, analysts can interact with the Tabular model through front-end tools like PowerBI; once the changes have been approved, we can promote the new version of the model to production.
 
