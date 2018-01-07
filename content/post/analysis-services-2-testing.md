@@ -39,7 +39,7 @@ In the example project, our measure is a simple average.  The gherkin for a very
 
 ```cucumber
 Feature: AverageAge
-  Calculating the average age of people
+    Calculating the average age of people
 
 Scenario: A single person
 	Given I have persons:
