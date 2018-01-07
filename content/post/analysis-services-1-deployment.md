@@ -12,7 +12,7 @@ In addition, we were finding a lot of errors and regressions in the measure calc
 
 We've managed to come up with reasonable solutions to both of these problems--we now have an automated deployment pipeline based on Jenkins, as well as a full suite of acceptance tests around our measures.  And because I work with a really outstanding [group of people](https://www.proactivedigitalinsights.com/our-shared-culture), I've been encouraged to share the work we've done.  
 
-This post will concentrate on our deployment, and part 2 will cover the testing framework.  All of the code described in these posts is open sourced, and there is a full, working example on [github](https://github.com/lobsteropteryx/tabularexample); if anyone has better solutions to these issues, we'd love to hear about them!
+This post will concentrate on our deployment, and [part 2](/post/analysis-services-2-testing) will cover the testing framework.  All of the code described in these posts is open sourced, and there is a full, working example on [github](https://github.com/lobsteropteryx/tabularexample); if anyone has better solutions to these issues, we'd love to hear about them!
 
 ## System Summary
 
