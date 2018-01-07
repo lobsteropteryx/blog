@@ -4,7 +4,7 @@ draft = false
 title = "Automating Analysis Services Tabular Projects - Part 2: Testing"
 +++
 
-As part of my [day job](https://www.proactivedigitalinsights.com/), we've been building out a process for automation of a Microsoft [Tabular Model](https://docs.microsoft.com/en-us/sql/analysis-services/tabular-models/tabular-models-ssas) project; in a [previous post](/post/analysis-services-1-deployment) I described how we automated the deployment process, and this post will focus on testing.  A full, working sample project is available on [GitHub](https://github.com/lobsteropteryx/tabular-example).
+The past few weeks at [work](https://www.proactivedigitalinsights.com/), I've been building out a process for automation of a Microsoft [Tabular Model](https://docs.microsoft.com/en-us/sql/analysis-services/tabular-models/tabular-models-ssas) project; in a [previous post](/post/analysis-services-1-deployment) I described how we automated the deployment process, and this post will focus on testing.  A full, working sample project is available on [GitHub](https://github.com/lobsteropteryx/tabular-example).
 
 ## The Problem: Testing Measures
 
