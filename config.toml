@@ -1,4 +1,4 @@
-baseurl = "http://notesfromthelifeboat.com/"
+baseurl = "https://notesfromthelifeboat.com/"
 languageCode = "en-us"
 title = "Notes from the Lifeboat"
 theme = "hugo-type-theme"
