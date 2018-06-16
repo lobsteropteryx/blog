@@ -1,7 +1,7 @@
 box: debian
 build:
   steps:
-    - arjen/hugo-build@2.2.0:
+    - arjen/hugo-build:
         version: "0.42"
         theme: hugo-type-theme
         flags: --buildDrafts=false
