@@ -50,36 +50,36 @@ Since we want our tag job to run as soon as it's created, we have to deal with a
 In the case of deploying to staging, we can test for a null `ENVIRONMENT`, and set it in an     environment block:
 
 ```groovy
-        stage("Deploy to Staging") {
-            when {
-                buildingTag()
-                anyOf {
-                    environment name: 'ENVIRONMENT', value: 'staging'
-                    environment name: 'ENVIRONMENT', value: null
-                }
-            }
-            environment {
-                ENVIRONMENT = 'staging'
-            }
-            steps {
-                sh('make deploy')
-	    }
-	}
+stage("Deploy to Staging") {
+    when {
+        buildingTag()
+        anyOf {
+            environment name: 'ENVIRONMENT', value: 'staging'
+            environment name: 'ENVIRONMENT', value: null
+        }
+    }
+    environment {
+        ENVIRONMENT = 'staging'
+    }
+    steps {
+        sh('make deploy')
+    }
+}
 ```
 
 ## Promoting to Production
 Once the changes have been evaluated in the staging environment, the same tag can be pushed to production by adding another stage:
 
 ```groovy
-        stage("Deploy to Production") {
-            when {
-                buildingTag()
-                environment name: 'ENVIRONMENT', value: 'production'
-            }
-            steps {
-                sh('make deploy')
-	    }
-	}
+stage("Deploy to Production") {
+    when {
+        buildingTag()
+        environment name: 'ENVIRONMENT', value: 'production'
+    }
+    steps {
+        sh('make deploy')
+    }
+}
 ```
 
 In this stage we don't need to check for a null `ENVIRONMENT`, since the first run of the job will always go to staging.
