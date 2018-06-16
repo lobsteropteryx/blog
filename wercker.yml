@@ -9,7 +9,6 @@ build:
             $(git clone https://github.com/digitalcraftsman/hugo-type-theme.git ./themes/hugo-type-theme)
     - arjen/hugo-build:
         version: "0.42"
-        theme: hugo-type-theme
         flags: --buildDrafts=false
 deploy:
   steps:
