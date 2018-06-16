@@ -3,8 +3,6 @@ build:
   steps:
     - arjen/hugo-build:
         version: "0.42"
-        theme: hugo-type-theme
-        flags: --buildDrafts=false
     - script:
       name: ls stuff
       code: |
