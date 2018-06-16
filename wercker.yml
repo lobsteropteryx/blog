@@ -5,6 +5,10 @@ build:
         version: "0.42"
         theme: hugo-type-theme
         flags: --buildDrafts=false
+        - script:
+          name: ls stuff
+          code: |
+            ls -haltr /pipeline/source/public
 deploy:
   steps:
     - install-packages:
