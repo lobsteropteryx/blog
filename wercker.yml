@@ -8,7 +8,7 @@ build:
     - script:
       name: ls stuff
       code: |
-        ls -haltr /pipeline/source/public
+        ls -R /pipeline/source/public
 deploy:
   steps:
     - install-packages:
