@@ -1,11 +1,10 @@
 box: debian
 build:
   steps:
-    - arjen/hugo-build:
-        version: "0.25"
+    - arjen/hugo-build@2.2.0:
+        version: "0.42"
         theme: hugo-type-theme
-        flags: --buildDrafts=false --themesDir=/pipeline/source/themes
-deploy:
+        flags: --buildDrafts=false
   steps:
     - install-packages:
         packages: git ssh-client
