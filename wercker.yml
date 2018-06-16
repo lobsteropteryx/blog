@@ -1,8 +1,8 @@
 box: debian
 build:
   steps:
-    - arjen/hugo-build:
-        version: "0.24"
+    - arjen/hugo-build@0.2.2:
+        version: "0.42"
     - script:
       name: ls stuff
       code: |
