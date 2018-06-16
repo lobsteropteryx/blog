@@ -4,7 +4,7 @@ build:
     - arjen/hugo-build:
         version: "0.25"
         theme: hugo-type-theme
-        flags: --buildDrafts=false
+        flags: --buildDrafts=false --themesDir=/pipeline/source/themes
 deploy:
   steps:
     - install-packages:
