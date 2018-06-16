@@ -1,8 +1,6 @@
 box: debian
 build:
   steps:
-    - install-packages:
-        packages: git
     - arjen/hugo-build:
         version: "0.42"
         theme: hugo-type-theme
