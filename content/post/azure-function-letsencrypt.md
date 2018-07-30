@@ -1,7 +1,7 @@
 +++
 date = "2018-07-30T00:00:00+00:00"
 draft = false
-title = "Automating Azure Functions with Letsencrypt"
+title = "Automating Letsencrypt Certs on Azure Functions"
 +++
 
 [Azure Functions](https://azure.microsoft.com/en-us/services/functions/) are Microsoft's serverless offering, and they can be a great option for building simple, scalable applications and APIs.  A common practice is to apply a CNAME with your custom domain to the Azure DNS entry, and have users access your application from that domain, "hiding" the implementation.  Today HTTPS is [necessary](https://www.theverge.com/2018/2/8/16991254/chrome-not-secure-marked-http-encryption-ssl), and Azure has built-in capability to apply a custom domain and certificate to your Function App.
