@@ -1,3 +1,9 @@
++++
+date = "2019-03-31T00:00:00+00:00"
+draft = true 
+title = "How We Work, Part 1"
++++
+
 A few thoughts about common patterns I've used successfully with distributed teams.
 
 ## Visualizing Work 
