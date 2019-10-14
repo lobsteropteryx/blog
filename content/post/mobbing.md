@@ -11,7 +11,7 @@ programming two years ago; since then we have adopted it as part of our core
 culture, and continue to spread it throughout our organization and clients.  We
 talk a bit about who inspired us, how we convinced our leaders to let us try
 it, and where we ended up.  We also show some of the data we collected along
-the way, and talk about the advantes we've seen, the challenges we've
+the way, and talk about the advantages we've seen, the challenges we've
 encountered, and some of the ways we've adapted.
 
 ### Starting Out 
@@ -55,7 +55,7 @@ _and_ uncomfortable, we figured that we would need rely on data to make our
 case.
 
 We were already tracking our throughput (from the time a pair started the work
-until it was usable in production), as well as our defect rate, so I pulled
+until it was usable in production), as well as our defect rate, so we pulled
 a few months of historical data on those two metrics to server as a baseline.
 Then the team talked through some of Woody's suggestions and techniques, and we
 pulled our first card as a mob just before Haloween!
