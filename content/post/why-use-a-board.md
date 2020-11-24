@@ -183,17 +183,14 @@ In general, we'll keep repeating the same basic steps in a [double loop
 learning](https://en.wikipedia.org/wiki/Double-loop_learning)
 pattern, something like this:
 
-1.  Model the existing workflow
-
+```
+1. Model the existing workflow
     a.  Are we missing a column?
-
     b.  Are there columns we no longer need?
-
-2.  Improve the existing workflow, using our model for feedback
-
-    c.  Where is work accumulating?
-
-    d.  What can we try that might improve things at the bottleneck?
+2. Improve the existing workflow, using our model for feedback
+    a. Where is work accumulating?
+    b.  What can we try that might improve things at the bottleneck?
+```
 
 Tooling for Distributed Teams
 =============================
