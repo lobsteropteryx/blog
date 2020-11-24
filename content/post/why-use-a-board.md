@@ -2,7 +2,7 @@
 title: "Why Use a Board?" 
 author: "Ian Firkin"
 date: 2020-11-24 
-draft: true
+draft: false
 ---
 
 A lot of teams have moved from being colocated to distributed recently,
