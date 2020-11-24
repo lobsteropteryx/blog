@@ -185,11 +185,11 @@ pattern, something like this:
 
 ```
 1. Model the existing workflow
-    a.  Are we missing a column?
-    b.  Are there columns we no longer need?
+    a. Are we missing a column?
+    b. Are there columns we no longer need?
 2. Improve the existing workflow, using our model for feedback
     a. Where is work accumulating?
-    b.  What can we try that might improve things at the bottleneck?
+    b. What can we try that might improve things at the bottleneck?
 ```
 
 Tooling for Distributed Teams
