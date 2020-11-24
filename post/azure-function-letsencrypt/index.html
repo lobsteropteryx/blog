@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<title>Automating Letsencrypt Certs on Azure Functions&middot; Notes from the Lifeboat</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author" content="Ian Firkin">
+	<meta name="description" content="Dim interlocutions">
+	
+	<meta name="generator" content="Hugo 0.42" />
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/main.css">
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/syntax.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="https://notesfromthelifeboat.com/favicon.ico" type="image/x-icon">
+
+	<!-- RSS -->
+	
+
+	<!-- Font Awesome -->
+	<link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/default.min.css">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+	<header class="site-header">
+	<div class="branding">
+		<a href="https://notesfromthelifeboat.com/">
+		<img class="avatar" src="https://notesfromthelifeboat.com/img/avatar.png" alt=""/>
+		</a>
+		<h1 class="site-title">
+			<a href="https://notesfromthelifeboat.com/">Notes from the Lifeboat</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+			<li><a href="/about/"> About </a></li>
+
+			<li class="icon">
+	<a href="https://notesfromthelifeboat.com/" title="">
+		<i class="fa fa-fw fa-home"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="https://notesfromthelifeboat.com/index.xml" title="Subcribe">
+		<i class="fa fa-fw fa-rss"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="mailto:ian.firkin@gmail.com" title="Email">
+		<i class="fa fa-fw fa-envelope"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://github.com/lobsteropteryx" title="GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://twitter.com/lobsteropteryx" title="Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+
+	<div class="content">
+	<article>
+		<header>
+			<h1 class="title">Automating Letsencrypt Certs on Azure Functions</h1>
+			<p class="meta">
+	July 30, 2018 &middot; 2 minute read
+
+	
+</p>
+
+		</header>
+
+		<section class="post-content">
+			<p><a href="https://azure.microsoft.com/en-us/services/functions/">Azure Functions</a> are Microsoft&rsquo;s serverless offering, and they can be a great option for building simple, scalable applications and APIs.  A common practice is to apply a CNAME with your custom domain to the Azure DNS entry, and have users access your application from that domain, &ldquo;hiding&rdquo; the implementation.  Today HTTPS is <a href="https://www.theverge.com/2018/2/8/16991254/chrome-not-secure-marked-http-encryption-ssl">necessary</a>, and Azure has built-in capability to apply a custom domain and certificate to your Function App.</p>
+
+<p>If you want to get your certificates from <a href="https://letsencrypt.org/">Letsencrypt</a>, there is a <a href="https://github.com/sjkp/letsencrypt-siteextension/">site extension</a> by <a href="http://wp.sjkp.dk/">Simon J.K. Pedersen</a> that will handle that for you; there are many <a href="https://www.troyhunt.com/everything-you-need-to-know-about-loading-a-free-lets-encrypt-certificate-into-an-azure-website/">great</a> <a href="https://www.hanselman.com/blog/SecuringAnAzureAppServiceWebsiteUnderSSLInMinutesWithLetsEncrypt.aspx">posts</a> that show how to set this up for App Services, and the same approach works for Functions as well, with some <a href="https://github.com/sjkp/letsencrypt-siteextension/wiki/Azure-Functions-Support">additional steps</a>.</p>
+
+<p>All of the existing posts are basically how-to guides, walking you through a manual configuration.  This is fine for securing a few sites, but in production we&rsquo;d ideally automate the process, especially if we&rsquo;re going to build many small services on top of Azure Functions.</p>
+
+<p>To help with this, I&rsquo;ve created a sample GitHub <a href="https://github.com/lobsteropteryx/azure-function-letsencrypt">repository</a> that contains scripts to automate the setup of an Azure Function App as much as possible.  Using <a href="https://www.terraform.io/">Terraform</a> and the <a href="https://docs.microsoft.com/en-us/cli/azure/?view=azure-cli-latest">Azure CLI</a>, the scripts will:</p>
+
+<ul>
+<li>Create the basic scaffolding for a Function App (Resource Group, App Service, Application Insights, etc.)</li>
+<li>Configure the App Service with the necessary settings for the extension to work</li>
+<li>Publish two functions&ndash;one to manage the Letsencrypt certs, and another test function to verify the cert is working</li>
+<li>Configure the required proxy and route template to handle letsencrypt requests</li>
+</ul>
+
+<p>You will still need to request a CNAME for your Function App, and manually install the extension into your Function app, but the rest of the configuration and creation is taken care of via the scripts, and can be customized as needed!</p>
+
+
+			
+				<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "notesfromthelifeboat" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+			
+		</section>
+	</article>
+	</div>
+
+	<footer class="site-footer">
+	<p class="text">&copy; 2020 - Released under the MIT license<br>Powered by <a href="//gohugo.io/">Hugo</a> with the <a href="//github.com/digitalcraftsman/hugo-type-theme">Type Theme</a></p>
+</footer>
+
+
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-27980065-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+</body>
+</html>

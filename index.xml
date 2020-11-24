@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+  
+    <title>Notes from the Lifeboat on Notes from the Lifeboat</title>
+    <link>https://notesfromthelifeboat.com/</link>
+    <description>Recent content in Notes from the Lifeboat on Notes from the Lifeboat</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 24 Nov 2020 00:00:00 +0000</lastBuildDate>
+    <atom:link href="/" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Why Use a Board?</title>
+      <link>https://notesfromthelifeboat.com/post/why-use-a-board/</link>
+      <pubDate>Tue, 24 Nov 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/why-use-a-board/</guid>
+      <description>A lot of teams have moved from being colocated to distributed recently, and quite a few people are jumping in to defend their tool of choice for representing &amp;ldquo;cards on a wall.&amp;rdquo; Jira-bashing is always popular, but one thing I&amp;rsquo;ve noticed is that folks aren&amp;rsquo;t necessarily optimizing for the same things; the result can often be a focus on tooling, and reducing the discussion to &amp;ldquo;which board is better&amp;rdquo;, rather than understanding what problems these tools help us to solve.</description>
+    </item>
+    
+    <item>
+      <title>Iterating on our Hiring Process</title>
+      <link>https://notesfromthelifeboat.com/post/iterating-on-our-hiring-process/</link>
+      <pubDate>Wed, 29 Jan 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/iterating-on-our-hiring-process/</guid>
+      <description>Note: This post was originally published on our company site, which has since been taken offline.
+The last half of 2019 brought some big changes for us at Digital Solutions: We had a team member leave, and we also saw substantial growth. That meant needing to hire four new folks, taking our team of six to ten. As a small, bootstrapped company without a dedicated hiring manager, we have to prioritize our hiring and make room for it in our daily work; at the same time, our size gives us a lot of freedom to experiment with our hiring practices.</description>
+    </item>
+    
+    <item>
+      <title>Our Path to Mobbing</title>
+      <link>https://notesfromthelifeboat.com/post/our-path-to-mobbing/</link>
+      <pubDate>Mon, 21 Oct 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/our-path-to-mobbing/</guid>
+      <description>Note: This post was originally published on our company site, which has since been taken offline.
+This is an experience report from our team, who first dabbled with mob programming two years ago; since then we have adopted it as part of our core culture, and continue to spread it throughout our organization and clients. We talk a bit about who inspired us, how we convinced our leaders to let us try it, and where we ended up.</description>
+    </item>
+    
+    <item>
+      <title>Automating Letsencrypt Certs on Azure Functions</title>
+      <link>https://notesfromthelifeboat.com/post/azure-function-letsencrypt/</link>
+      <pubDate>Mon, 30 Jul 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/azure-function-letsencrypt/</guid>
+      <description>Azure Functions are Microsoft&amp;rsquo;s serverless offering, and they can be a great option for building simple, scalable applications and APIs. A common practice is to apply a CNAME with your custom domain to the Azure DNS entry, and have users access your application from that domain, &amp;ldquo;hiding&amp;rdquo; the implementation. Today HTTPS is necessary, and Azure has built-in capability to apply a custom domain and certificate to your Function App.
+If you want to get your certificates from Letsencrypt, there is a site extension by Simon J.</description>
+    </item>
+    
+    <item>
+      <title>Deploying from a Git Tag with Jenkins Pipelines</title>
+      <link>https://notesfromthelifeboat.com/post/deploying-from-a-git-tag/</link>
+      <pubDate>Sat, 16 Jun 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/deploying-from-a-git-tag/</guid>
+      <description>In a previous post I outlined a workflow to create and trigger a pipeline job in Jenkins whenever a git tag is pushed. A common step in this type of workflow is to deploy to a staging environment once all the build and test steps are successful.
+One way to accomplish this is by using parameters&amp;ndash;a typical (declarative) job definition might look like:
+pipeline { agent { label &amp;#39;myLabel&amp;#39; } parameters { choice(choices: &amp;#39;staging\nproduction&amp;#39;, description: &amp;#39;Which environment?</description>
+    </item>
+    
+    <item>
+      <title>Building Git Tags with Jenkins Pipelines</title>
+      <link>https://notesfromthelifeboat.com/post/building-git-tags-with-jenkins/</link>
+      <pubDate>Tue, 10 Apr 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/building-git-tags-with-jenkins/</guid>
+      <description>There seem to be a lot of questions around making Jenkins pipelines work with git tags; having set this up recently, I thought I&amp;rsquo;d write a quick summary of one workable approach.
+Workflow This post covers a specific workflow used by my team; in particular, we don&amp;rsquo;t do pull requests, and we use tags to denote releases, which are automatically deployed. We tag our releases manually, so we aren&amp;rsquo;t configuring Jenkins to tag every build, but rather to watch for new tags to be pushed, and execute builds for them.</description>
+    </item>
+    
+    <item>
+      <title>Protecting Secrets in SaltStack Configuration</title>
+      <link>https://notesfromthelifeboat.com/post/salt-secrets/</link>
+      <pubDate>Wed, 07 Feb 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/salt-secrets/</guid>
+      <description>I came across a situation recently where secrets were being leaked via SaltStack deployments, run from a CI job. I&amp;rsquo;ll explain how this can happen, and give some suggestions to reduce the risk.
+A common workflow in SaltStack is to store secrets in a pillar on the salt master, which allows data to be encrypted until compilation. The file.managed module can then be used to templatize configuration files and inject secrets from the encrypted pillars.</description>
+    </item>
+    
+    <item>
+      <title>Test Speed</title>
+      <link>https://notesfromthelifeboat.com/post/test-speed/</link>
+      <pubDate>Sat, 27 Jan 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/test-speed/</guid>
+      <description>I recently did some work on a somewhat neglected C# code base; the basic function of the application was to pull down some custom reports from a third-party web API, parse the results, and store them in a database. There were a few obvious design problems, and the application hadn&amp;rsquo;t been built or deployed in years, but it did include a small test suite&amp;ndash;around 50 unit tests, written with Microsoft&amp;rsquo;s testing framework.</description>
+    </item>
+    
+    <item>
+      <title>Automating Analysis Services Tabular Projects - Part 2: Testing</title>
+      <link>https://notesfromthelifeboat.com/post/analysis-services-2-testing/</link>
+      <pubDate>Sun, 07 Jan 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/analysis-services-2-testing/</guid>
+      <description>The past few weeks at work, I&amp;rsquo;ve been building out a process for automation of a Microsoft Tabular Model project; in a previous post I described how we automated the deployment process, and this post will focus on testing. A full, working sample project is available on GitHub.
+The Problem: Testing Measures In SQL terms, a measure is somewhere between a view and an analytic function; it&amp;rsquo;s a calculation used to dynamically aggregate and filter report tables, and it can contain a fair bit of logic.</description>
+    </item>
+    
+    <item>
+      <title>Automating Analysis Services Tabular Projects - Part 1: Deployment</title>
+      <link>https://notesfromthelifeboat.com/post/analysis-services-1-deployment/</link>
+      <pubDate>Sat, 23 Dec 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/analysis-services-1-deployment/</guid>
+      <description>My team recently starting using Microsoft&amp;rsquo;s Tabular Model databases at work, as an intermediate layer between an operational data store and the end users who consume this data from Power BI. Tabular Models are an OLAP technology, providing an in-memory data cube, with measures being defined using either MDX or DAX query languages.
+As we were learning about the stack, we realized that there wasn&amp;rsquo;t much documentation around automated deployment or testing of Tabular Models; the typical deployment story seemed to be &amp;ldquo;right click -&amp;gt; publish&amp;rdquo; from Visual Studio.</description>
+    </item>
+    
+    <item>
+      <title>Testing Declarative Code</title>
+      <link>https://notesfromthelifeboat.com/post/testing_declarative_code/</link>
+      <pubDate>Sun, 17 Dec 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/testing_declarative_code/</guid>
+      <description>We&amp;rsquo;ve had some interesting discussions on our team recently, about the level of testing required for some very declarative sections of our codebase. I&amp;rsquo;ve been thinking about this subject a lot, especially after reading a recent post by Kent Beck.
+The fundamental problem we were trying to solve was this: We have a Python dictionary that represents an entity&amp;ndash;in this case, a person. All of its values are strings:</description>
+    </item>
+    
+    <item>
+      <title>Publishing Geoprocessing Services with SLAP</title>
+      <link>https://notesfromthelifeboat.com/post/slap-gp/</link>
+      <pubDate>Sat, 09 Dec 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/slap-gp/</guid>
+      <description>I&amp;rsquo;ve been working to add support in slap for publishing Geoprocessing (GP) services; the workflow outlined here will work with both Python Toolboxes as well as the older, binary .tbx file format.
+Similar to map services, it&amp;rsquo;s possible to publish geoprocessing services as part of a docker build; all of the scripts, tools, and dockerfiles used in this example are available on github:
+ slap base docker images test image test data and scripts  Publishing from a Result File The createGPSDDraft method takes either a Result object or a path to a result (.</description>
+    </item>
+    
+    <item>
+      <title>Publishing Map Services as Part of a Docker Build</title>
+      <link>https://notesfromthelifeboat.com/post/docker-publishing-docker-build/</link>
+      <pubDate>Thu, 10 Aug 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/docker-publishing-docker-build/</guid>
+      <description>A lot of smart people have worked to get ArcGIS Server (AGS) up and running in a docker container; it&amp;rsquo;s a fast and convenient way to test applications that require an AGS instance to function.
+It&amp;rsquo;s possible to streamline things even further by registering data and publishing services as part of the docker build process; this allows you to keep your infrastucture, data, and service definitions under source control, and use those to build an image with all the necessary services included.</description>
+    </item>
+    
+    <item>
+      <title>Test Time</title>
+      <link>https://notesfromthelifeboat.com/post/test-time/</link>
+      <pubDate>Sat, 29 Jul 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/test-time/</guid>
+      <description>I&amp;rsquo;ve spent a good deal of time helping teams adopt automated testing as a part of their workflow; one thing that I&amp;rsquo;ve often heard from folks who aren&amp;rsquo;t familiar with the methodology is the following:
+ &amp;ldquo;How much time do you estimate for writing unit tests?&amp;rdquo;
+ Usually what people are looking for is something like, &amp;ldquo;I need X hours for the production code, and Y hours for writing tests for this feature.</description>
+    </item>
+    
+    <item>
+      <title>Six Essentials for a Python Project</title>
+      <link>https://notesfromthelifeboat.com/post/python-project/</link>
+      <pubDate>Sun, 23 Jul 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/python-project/</guid>
+      <description>I&amp;rsquo;ve seen a lot of GIS developers struggle to create a good project structure when building Python applications; often there&amp;rsquo;s a transition from one enormous file with a single method to a &amp;ldquo;real&amp;rdquo; software project, with modular design, well defined dependencies, and the necessary tooling.
+The goal of this post is to be a summary and short checklist; these steps can improve almost any project, and are easy to implement.</description>
+    </item>
+    
+  
+  </channel>
+</rss>

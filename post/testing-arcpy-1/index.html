@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<title>Testing with ArcPy: Test Driving Geodatabase Changes Using Fixtures&middot; Notes from the Lifeboat</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author" content="Ian Firkin">
+	<meta name="description" content="Dim interlocutions">
+	
+	<meta name="generator" content="Hugo 0.42" />
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/main.css">
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/syntax.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="https://notesfromthelifeboat.com/favicon.ico" type="image/x-icon">
+
+	<!-- RSS -->
+	
+
+	<!-- Font Awesome -->
+	<link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/default.min.css">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+	<header class="site-header">
+	<div class="branding">
+		<a href="https://notesfromthelifeboat.com/">
+		<img class="avatar" src="https://notesfromthelifeboat.com/img/avatar.png" alt=""/>
+		</a>
+		<h1 class="site-title">
+			<a href="https://notesfromthelifeboat.com/">Notes from the Lifeboat</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+			<li><a href="/about/"> About </a></li>
+
+			<li class="icon">
+	<a href="https://notesfromthelifeboat.com/" title="">
+		<i class="fa fa-fw fa-home"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="https://notesfromthelifeboat.com/index.xml" title="Subcribe">
+		<i class="fa fa-fw fa-rss"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="mailto:ian.firkin@gmail.com" title="Email">
+		<i class="fa fa-fw fa-envelope"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://github.com/lobsteropteryx" title="GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://twitter.com/lobsteropteryx" title="Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+
+	<div class="content">
+	<article>
+		<header>
+			<h1 class="title">Testing with ArcPy: Test Driving Geodatabase Changes Using Fixtures</h1>
+			<p class="meta">
+	July 4, 2017 &middot; 6 minute read
+
+	
+</p>
+
+		</header>
+
+		<section class="post-content">
+			
+
+<p><a href="https://en.wikipedia.org/wiki/Test-driven_development#Limitations">Test Driven Development</a> has been a major part of the discipline of software engineering for almost two decades; a <a href="http://blog.cleancoder.com/uncle-bob/2014/12/17/TheCyclesOfTDD.html">Red-Green-Refactor</a> cycle helps keep codebases maintainable, while lowering the risk of adding new features by protecting against regression and facilitating extensible designs.</p>
+
+<p>The design and history of <a href="http://pro.arcgis.com/en/pro-app/arcpy/get-started/what-is-arcpy-.htm">arcpy</a> and its related modules can make it difficult to test, and automation is not always given high priority in GIS projects.  Nevertheless, there are techniques to help ease the process, and it&rsquo;s relatively easy to test drive the development of GIS software.</p>
+
+<p>This post walks through a couple of basic test scenarios, and the full project is available on <a href="https://github.com/lobsteropteryx/testing-arcpy">github</a>.</p>
+
+<h2 id="geodatabase-operations">Geodatabase Operations</h2>
+
+<p>A common task that can be automated via arcpy is transforming geodatabase data and schemas.  We may want to use <a href="http://pro.arcgis.com/en/pro-app/arcpy/classes/fieldmappings.htm">FieldMappings</a>, add or remove fields, and calculate new values derived from existing fields; all of these operations can be test-driven.</p>
+
+<p>In this example, we&rsquo;ll test-drive a very simple feature:  Adding a new field, and populating it with the sum of two other fields.</p>
+
+<h2 id="test-fixtures">Test Fixtures</h2>
+
+<p>While arcpy exposes methods to create a new feature class and insert records, this can become difficult to maintain for large numbers of tables with many fields.  Another approach is to use a <a href="https://en.wikipedia.org/wiki/Test_fixture#Software">fixture</a>.</p>
+
+<p>Our fixture will be a file geocodatabase (FGDB); this database will hold known data that will be used by our tests.  Since a FGDB is just a directory, we can check it into our project and manage it just like any other test files.</p>
+
+<p>When creating a test fixture, we want to use the minimum set of data needed to prove out our logic; in practice, this usually means tables with one or two rows&ndash;we&rsquo;ll be running the tests many, many times, so we want them to be as fast as possible!</p>
+
+<p>Note:  ArcMap may lock the database if we have it open; because of this, it&rsquo;s a good idea to add <code>.lock</code> files in the test data directory to your <code>.gitignore</code> file.</p>
+
+<p>Because we need a FGDB to hold our fixture data, the tests are not true unit tests, since they&rsquo;re still coupled to the filesystem.  We can keep this coupling as loose as possible, by copying the fixture data into an in-memory workspace before each test.</p>
+
+<p>Once we have our fixture created, our project structure should look something like this:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">├── my_project
+│   ├── __init__.py
+│   └── my_module.py
+├── setup.py
+└── tests
+    ├── __init__.py
+    ├── fixtures
+    │   └── test_data.gdb
+    │       ├── &lt;a whole bunch of FGDB files&gt;
+    └── test_my_module.py</code></pre></div>
+<h2 id="setting-up-and-tearing-down">Setting up and tearing down</h2>
+
+<p>We want each test to run from a fresh, clean state, and to be independent of all the other tests.  We can accomplish this by copying our fixture data into memory, and cleaning up in the <code>tearDown</code> method of the python <a href="https://docs.python.org/2/library/unittest.html">unittest</a> module; this method will automatically be run after each test.</p>
+
+<p>The <a href="http://pro.arcgis.com/en/pro-app/tool-reference/data-management/copy.htm">Copy</a> tool <a href="https://pro.arcgis.com/en/pro-app/tool-reference/tool-errors-and-warnings/001001-010000/tool-errors-and-warnings-00251-00275-000260.htm">doesn&rsquo;t support</a> <code>in_memory</code> workspaces, but we can use a create and append pattern, with a template:</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+<span class="kn">import</span> <span class="nn">arcpy</span>
+
+
+<span class="k">class</span> <span class="nc">MyModuleTest</span><span class="p">(</span><span class="n">unittest</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+
+    <span class="n">TEST_GDB</span> <span class="o">=</span> <span class="s1">&#39;in_memory&#39;</span>
+
+    <span class="k">def</span> <span class="nf">setup_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_name</span><span class="o">=</span><span class="s1">&#39;MyTable&#39;</span><span class="p">):</span>
+        <span class="n">input_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="s1">&#39;tests/fixtures/test_data.gdb/{}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">table_name</span><span class="p">))</span>
+        <span class="n">output_file</span> <span class="o">=</span> <span class="s1">&#39;{}/{}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">TEST_GDB</span><span class="p">,</span> <span class="n">table_name</span><span class="p">)</span>
+        <span class="n">arcpy</span><span class="o">.</span><span class="n">CreateFeatureclass_management</span><span class="p">(</span>
+            <span class="n">out_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">TEST_GDB</span><span class="p">,</span>
+            <span class="n">out_name</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span>
+            <span class="n">template</span><span class="o">=</span><span class="n">input_file</span>
+        <span class="p">)</span>
+        <span class="n">arcpy</span><span class="o">.</span><span class="n">Append_management</span><span class="p">(</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">input_file</span><span class="p">,</span>
+            <span class="n">target</span><span class="o">=</span><span class="n">output_file</span><span class="p">,</span>
+            <span class="n">schema_type</span><span class="o">=</span><span class="s1">&#39;NO_TEST&#39;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">output_file</span></code></pre></div>
+<p>To clean up, we call the <a href="http://pro.arcgis.com/en/pro-app/tool-reference/data-management/delete.htm">Delete</a> tool in our <code>tearDown</code> method:</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python">    <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">arcpy</span><span class="o">.</span><span class="n">Delete_management</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">TEST_GDB</span><span class="p">)</span></code></pre></div>
+<p>Now we&rsquo;re ready to write our first test!</p>
+
+<h2 id="adding-a-field">Adding a Field</h2>
+
+<p>Say we want our business code to add a <code>SUM</code> field to the table, and calculate some value.  We&rsquo;ll write our test first:</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="k">def</span> <span class="nf">test</span> <span class="n">adds_sum_field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">feature_class</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup_data</span><span class="p">(</span><span class="s1">&#39;SumData&#39;</span><span class="p">)</span>
+    <span class="n">field_name</span> <span class="o">=</span> <span class="s1">&#39;SUM&#39;</span>
+    <span class="n">add_sum_field</span><span class="p">(</span><span class="n">feature_class</span><span class="p">)</span>
+    <span class="n">field_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">field</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">arcpy</span><span class="o">.</span><span class="n">ListFields</span><span class="p">(</span><span class="n">feature_class</span><span class="p">)]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">field_name</span> <span class="ow">in</span> <span class="n">field_names</span><span class="p">)</span></code></pre></div>
+<p>and watch it fail:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ <span class="nv">pytest</span>
+<span class="o">=============================</span> <span class="nb">test</span> session <span class="nv">starts</span> <span class="o">=============================</span>
+platform win32 -- Python <span class="m">2</span>.7.12, pytest-3.1.2, py-1.4.34, pluggy-0.4.0
+rootdir: C:<span class="se">\d</span>evelop<span class="se">\t</span>esting-arcpy, inifile:
+collected <span class="m">1</span> items
+
+tests<span class="se">\t</span>est_my_module.py <span class="nv">F</span>
+
+<span class="o">==================================</span> <span class="nv">FAILURES</span> <span class="o">===================================</span>
+______________________ MyModuleTest.test_adds_sum_field _______________________
+
+<span class="nv">self</span> <span class="o">=</span> &lt;tests.test_my_module.MyModuleTest <span class="nv">testMethod</span><span class="o">=</span>test_adds_sum_field&gt;
+
+    def test_adds_sum_field<span class="o">(</span>self<span class="o">)</span>:
+        <span class="nv">feature_class</span> <span class="o">=</span> self.setup_data<span class="o">(</span><span class="s1">&#39;SumData&#39;</span><span class="o">)</span>
+        <span class="nv">field_name</span> <span class="o">=</span> <span class="s1">&#39;SUM&#39;</span>
+        <span class="nv">field_names</span> <span class="o">=</span> <span class="o">[</span>field.name <span class="k">for</span> field in arcpy.ListFields<span class="o">(</span>feature_class<span class="o">)]</span>
+&gt;       self.assertTrue<span class="o">(</span>field_name in field_names<span class="o">)</span>
+E       AssertionError: False is not <span class="nb">true</span>
+
+tests<span class="se">\t</span>est_my_module.py:32: <span class="nv">AssertionError</span>
+<span class="o">==========================</span> <span class="m">1</span> failed in <span class="m">11</span>.63 <span class="nv">seconds</span> <span class="o">==========================</span></code></pre></div>
+<p>Next we add our implementation code to the business module:</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">arcpy</span>
+
+
+<span class="k">def</span> <span class="nf">add_sum_field</span><span class="p">(</span><span class="n">feature_class</span><span class="p">):</span>
+    <span class="n">arcpy</span><span class="o">.</span><span class="n">AddField_management</span><span class="p">(</span>
+        <span class="n">in_table</span><span class="o">=</span><span class="n">feature_class</span><span class="p">,</span>
+        <span class="n">field_name</span><span class="o">=</span><span class="s1">&#39;SUM&#39;</span><span class="p">,</span>
+        <span class="n">field_type</span><span class="o">=</span><span class="s1">&#39;DOUBLE&#39;</span>
+    <span class="p">)</span></code></pre></div>
+<p>And rerun our tests:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ <span class="nv">pytest</span>
+<span class="o">=============================</span> <span class="nb">test</span> session <span class="nv">starts</span> <span class="o">=============================</span>
+platform win32 -- Python <span class="m">2</span>.7.12, pytest-3.1.2, py-1.4.34, pluggy-0.4.0
+rootdir: C:<span class="se">\d</span>evelop<span class="se">\t</span>esting-arcpy, inifile:
+collected <span class="m">1</span> items
+
+tests<span class="se">\t</span>est_my_module.py .
+
+<span class="o">==========================</span> <span class="m">1</span> passed in <span class="m">11</span>.61 <span class="nv">seconds</span> <span class="o">==========================</span></code></pre></div>
+<p>With everything green, we can now look for opportunities to refactor&ndash;we know our code works, and if we break something while cleaning up the code, we&rsquo;ll know right away.  There&rsquo;s not much logic here, so we&rsquo;ll go ahead and start the cycle over again, with a new, failing test.</p>
+
+<h2 id="calculating-a-field-value">Calculating a Field Value</h2>
+
+<p>Now we want to add some logic to calculate our <code>SUM</code> value; again, we&rsquo;ll write the test first:</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python">    <span class="k">def</span> <span class="nf">test_calculates_sum</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">feature_class</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup_data</span><span class="p">(</span><span class="s1">&#39;SumData&#39;</span><span class="p">)</span>
+        <span class="n">add_sum_field</span><span class="p">(</span><span class="n">feature_class</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">arcpy</span><span class="o">.</span><span class="n">da</span><span class="o">.</span><span class="n">SearchCursor</span><span class="p">(</span><span class="n">feature_class</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;SUM&#39;</span><span class="p">])</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span></code></pre></div>
+<p>and watch it fail:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ <span class="nv">pytest</span>
+<span class="o">=============================</span> <span class="nb">test</span> session <span class="nv">starts</span> <span class="o">=============================</span>
+platform win32 -- Python <span class="m">2</span>.7.12, pytest-3.1.2, py-1.4.34, pluggy-0.4.0
+rootdir: C:<span class="se">\d</span>evelop<span class="se">\t</span>esting-arcpy, inifile:
+collected <span class="m">2</span> items
+
+tests<span class="se">\t</span>est_my_module.py .F
+
+<span class="o">==================================</span> <span class="nv">FAILURES</span> <span class="o">===================================</span>
+______________________ MyModuleTest.test_calculates_sum _______________________
+
+<span class="nv">self</span> <span class="o">=</span> &lt;tests.test_my_module.MyModuleTest <span class="nv">testMethod</span><span class="o">=</span>test_calculates_sum&gt;
+
+    def test_calculates_sum<span class="o">(</span>self<span class="o">)</span>:
+        <span class="nv">feature_class</span> <span class="o">=</span> self.setup_data<span class="o">(</span><span class="s1">&#39;SumData&#39;</span><span class="o">)</span>
+        add_sum_field<span class="o">(</span>feature_class<span class="o">)</span>
+        with arcpy.da.SearchCursor<span class="o">(</span>feature_class, <span class="o">[</span><span class="s1">&#39;SUM&#39;</span><span class="o">])</span> as cursor:
+            <span class="k">for</span> row in cursor:
+&gt;               self.assertEqual<span class="o">(</span>row<span class="o">[</span><span class="m">0</span><span class="o">]</span>, <span class="m">2</span><span class="o">)</span>
+E               AssertionError: None !<span class="o">=</span> <span class="m">2</span>
+
+tests<span class="se">\t</span>est_my_module.py:42: <span class="nv">AssertionError</span>
+<span class="o">=====================</span> <span class="m">1</span> failed, <span class="m">1</span> passed in <span class="m">12</span>.76 <span class="nv">seconds</span> <span class="o">=====================</span></code></pre></div>
+<p>then implement our business logic:</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">arcpy</span>
+
+
+<span class="k">def</span> <span class="nf">add_sum_field</span><span class="p">(</span><span class="n">feature_class</span><span class="p">):</span>
+    <span class="n">arcpy</span><span class="o">.</span><span class="n">AddField_management</span><span class="p">(</span>
+        <span class="n">in_table</span><span class="o">=</span><span class="n">feature_class</span><span class="p">,</span>
+        <span class="n">field_name</span><span class="o">=</span><span class="s1">&#39;SUM&#39;</span><span class="p">,</span>
+        <span class="n">field_type</span><span class="o">=</span><span class="s1">&#39;DOUBLE&#39;</span>
+    <span class="p">)</span>
+
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;FIRST_VALUE&#39;</span><span class="p">,</span> <span class="s1">&#39;SECOND_VALUE&#39;</span><span class="p">,</span> <span class="s1">&#39;SUM&#39;</span><span class="p">]</span>
+    <span class="k">with</span> <span class="n">arcpy</span><span class="o">.</span><span class="n">da</span><span class="o">.</span><span class="n">UpdateCursor</span><span class="p">(</span><span class="n">feature_class</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="p">:</span>
+            <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">updateRow</span><span class="p">(</span><span class="n">row</span><span class="p">)</span></code></pre></div>
+<p>And check that our tests pass:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ <span class="nv">pytest</span>
+<span class="o">=============================</span> <span class="nb">test</span> session <span class="nv">starts</span> <span class="o">=============================</span>
+platform win32 -- Python <span class="m">2</span>.7.12, pytest-3.1.2, py-1.4.34, pluggy-0.4.0
+rootdir: C:<span class="se">\d</span>evelop<span class="se">\t</span>esting-arcpy, inifile:
+collected <span class="m">2</span> items
+
+tests<span class="se">\t</span>est_my_module.py ..
+
+<span class="o">==========================</span> <span class="m">2</span> passed in <span class="m">13</span>.22 <span class="nv">seconds</span> <span class="o">==========================</span></code></pre></div>
+<p>Once everything is green, we&rsquo;ll look again for places to remove duplication, make our intent clear, and just clean up our code (incuding our test code).  It&rsquo;s easy to gloss over the refactor step, but it is <strong>critical!</strong></p>
+
+<p>Looking at our above code, we might separate out setting the new field value into its own function:</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">arcpy</span>
+
+
+<span class="k">def</span> <span class="nf">add_sum_field</span><span class="p">(</span><span class="n">feature_class</span><span class="p">):</span>
+    <span class="n">arcpy</span><span class="o">.</span><span class="n">AddField_management</span><span class="p">(</span>
+        <span class="n">in_table</span><span class="o">=</span><span class="n">feature_class</span><span class="p">,</span>
+        <span class="n">field_name</span><span class="o">=</span><span class="s1">&#39;SUM&#39;</span><span class="p">,</span>
+        <span class="n">field_type</span><span class="o">=</span><span class="s1">&#39;DOUBLE&#39;</span>
+    <span class="p">)</span>
+    <span class="n">_update_sum_value</span>
+
+<span class="k">def</span> <span class="nf">_update_sum_value</span><span class="p">(</span><span class="n">feature_class</span><span class="p">):</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;FIRST_VALUE&#39;</span><span class="p">,</span> <span class="s1">&#39;SECOND_VALUE&#39;</span><span class="p">,</span> <span class="s1">&#39;SUM&#39;</span><span class="p">]</span>
+    <span class="k">with</span> <span class="n">arcpy</span><span class="o">.</span><span class="n">da</span><span class="o">.</span><span class="n">UpdateCursor</span><span class="p">(</span><span class="n">feature_class</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="p">:</span>
+            <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">updateRow</span><span class="p">(</span><span class="n">row</span><span class="p">)</span></code></pre></div>
+<p>after making a change, we make sure our tests are still green:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ <span class="nv">pytest</span>
+<span class="o">=============================</span> <span class="nb">test</span> session <span class="nv">starts</span> <span class="o">=============================</span>
+platform win32 -- Python <span class="m">2</span>.7.12, pytest-3.1.2, py-1.4.34, pluggy-0.4.0
+rootdir: C:<span class="se">\d</span>evelop<span class="se">\t</span>esting-arcpy, inifile:
+collected <span class="m">2</span> items
+
+tests<span class="se">\t</span>est_my_module.py ..
+
+<span class="o">==========================</span> <span class="m">2</span> passed in <span class="m">13</span>.23 <span class="nv">seconds</span> <span class="o">==========================</span></code></pre></div>
+<p>Having tests lets us make changes to keep our code neat and maintainable, while giving confidence that we haven&rsquo;t changed the fundamental behavior; it also protects against regression when new features are added, or requirements change in the future.  Once you fall into the rhythm of red-green-refactor, it&rsquo;s both gratifying and surprising to see how quickly you can add new features to a project!</p>
+
+
+			
+				<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "notesfromthelifeboat" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+			
+		</section>
+	</article>
+	</div>
+
+	<footer class="site-footer">
+	<p class="text">&copy; 2020 - Released under the MIT license<br>Powered by <a href="//gohugo.io/">Hugo</a> with the <a href="//github.com/digitalcraftsman/hugo-type-theme">Type Theme</a></p>
+</footer>
+
+
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-27980065-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+</body>
+</html>

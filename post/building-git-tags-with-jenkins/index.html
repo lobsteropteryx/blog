@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<title>Building Git Tags with Jenkins Pipelines&middot; Notes from the Lifeboat</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author" content="Ian Firkin">
+	<meta name="description" content="Dim interlocutions">
+	
+	<meta name="generator" content="Hugo 0.42" />
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/main.css">
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/syntax.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="https://notesfromthelifeboat.com/favicon.ico" type="image/x-icon">
+
+	<!-- RSS -->
+	
+
+	<!-- Font Awesome -->
+	<link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/default.min.css">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+	<header class="site-header">
+	<div class="branding">
+		<a href="https://notesfromthelifeboat.com/">
+		<img class="avatar" src="https://notesfromthelifeboat.com/img/avatar.png" alt=""/>
+		</a>
+		<h1 class="site-title">
+			<a href="https://notesfromthelifeboat.com/">Notes from the Lifeboat</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+			<li><a href="/about/"> About </a></li>
+
+			<li class="icon">
+	<a href="https://notesfromthelifeboat.com/" title="">
+		<i class="fa fa-fw fa-home"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="https://notesfromthelifeboat.com/index.xml" title="Subcribe">
+		<i class="fa fa-fw fa-rss"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="mailto:ian.firkin@gmail.com" title="Email">
+		<i class="fa fa-fw fa-envelope"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://github.com/lobsteropteryx" title="GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://twitter.com/lobsteropteryx" title="Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+
+	<div class="content">
+	<article>
+		<header>
+			<h1 class="title">Building Git Tags with Jenkins Pipelines</h1>
+			<p class="meta">
+	April 10, 2018 &middot; 3 minute read
+
+	
+</p>
+
+		</header>
+
+		<section class="post-content">
+			
+
+<p>There seem to be a lot of questions around making Jenkins <a href="https://jenkins.io/doc/book/pipeline-as-code/">pipelines</a> work with <a href="https://git-scm.com/book/en/v2/Git-Basics-Tagging">git tags</a>; having set this up recently, I thought I&rsquo;d write a quick summary of one workable approach.</p>
+
+<h2 id="workflow">Workflow</h2>
+
+<p>This post covers a specific workflow used by my team; in particular, we don&rsquo;t do pull requests, and we use tags to denote releases, which are automatically deployed.  We tag our releases manually, so we aren&rsquo;t configuring Jenkins to tag every build, but rather to watch for new tags to be pushed, and execute builds for them.</p>
+
+<p>Our requirements are something like this:</p>
+
+<ol>
+<li>Generate a build for every branch, and execute it on creation</li>
+<li>Execute a build every time changes are pushed to its branch</li>
+<li>Generate a build whenever a tag is pushed, and execute it</li>
+</ol>
+
+<p>If your workflow is different, you can configure things differently (i.e., to build pull requests), without affecting the way tags are built.</p>
+
+<p>The steps outlined here will work for a GitHub organization; there are <a href="https://wiki.jenkins.io/display/JENKINS/Bitbucket+Branch+Source+Plugin">equivalents</a> for BitBucket, but I haven&rsquo;t used them yet.</p>
+
+<h2 id="plugins-and-configuration">Plugins and Configuration</h2>
+
+<p>We need a couple of plugins in order to discover and build git tags:</p>
+
+<ul>
+<li><a href="https://github.com/jenkinsci/github-branch-source-plugin">GitHub Branch Source Plugin</a></li>
+<li><a href="https://github.com/jenkinsci/basic-branch-build-strategies-plugin">Basic Branch Build Strategies Plugin</a></li>
+</ul>
+
+<p>Note that the GitHub Branch Source Plugin must be at least version 2.3.0 for tag discovery to work.</p>
+
+<p>Once the plugins are installed, navigate to your top-level GitHub Organization job, go to <code>Configure</code>, and you can add <code>Tag Discovery</code> from the dropdown under <code>Behaviors</code>:</p>
+
+<p><img src="/images/jenkins-tag-discover.png" alt="discover tags" /></p>
+
+<p>Similarly, you can add build strategies for both branches and tags:</p>
+
+<p><img src="/images/jenkins-tag-build.png" alt="build tags" /></p>
+
+<p>The next time you scan your GitHub Organization, you should see jobs generated for each existing tag:</p>
+
+<p><img src="/images/jenkins-tag-jobs.png" alt="tag jobs" /></p>
+
+<p>When you push a new tag, its job will be generated and executed automatically.</p>
+
+<h2 id="controlling-which-tags-are-built">Controlling which Tags are Built</h2>
+
+<p>If you&rsquo;re using tags for deployment, you need to put some thought into setting up your build strategy; for example, if you add a Jenkinsfile to a repository that already has a number of tags, they will all get discovered, and jobs will be generated for them.  If you aren&rsquo;t careful with your build strategy, all of those jobs will be run as well!</p>
+
+<p>We&rsquo;ve set our system up to only build tags that are less than a day old&ndash;so far this has worked well.</p>
+
+<h2 id="executing-stages-provisionally">Executing Stages Provisionally</h2>
+
+<p>We typically want to run our build and test scripts on every branch, but only deploy artifacts from tags.  You can do this by wrapping the stage in a conditional (for scripted pipelines), or using a <code>when</code> block (for declarative pipelines):</p>
+<div class="highlight"><pre class="chroma"><code class="language-groovy" data-lang="groovy"><span class="n">node</span> <span class="o">{</span>
+    <span class="n">stage</span> <span class="o">(</span><span class="s2">&#34;checkout&#34;</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">checkout</span> <span class="n">scm</span>
+    <span class="o">}</span>
+    <span class="n">stage</span><span class="o">(</span><span class="s2">&#34;test&#34;</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">sh</span><span class="o">(</span><span class="s1">&#39;bin/run_all_tests.sh&#39;</span><span class="o">)</span>
+    <span class="o">}</span>
+    <span class="kt">def</span> <span class="n">tag</span> <span class="o">=</span> <span class="n">sh</span><span class="o">(</span><span class="nl">returnStdout:</span> <span class="kc">true</span><span class="o">,</span> <span class="nl">script:</span> <span class="s2">&#34;git tag --contains | head -1&#34;</span><span class="o">).</span><span class="na">trim</span><span class="o">()</span>
+    <span class="k">if</span> <span class="o">(</span><span class="n">tag</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">stage</span><span class="o">(</span><span class="s2">&#34;deploy&#34;</span><span class="o">)</span> <span class="o">{</span>
+            <span class="n">sh</span><span class="o">(</span><span class="s1">&#39;bin/build_and_publish.sh&#39;</span><span class="o">)</span>
+        <span class="o">}</span>
+    <span class="o">}</span>
+<span class="o">}</span></code></pre></div>
+<p>We have seen issues getting the <code>TAG_NAME</code> environment variable to work, similar to this <a href="https://issues.jenkins-ci.org/browse/JENKINS-34520">issue</a>.  As a workaround, we capture the tag using a shell command.</p>
+
+
+			
+				<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "notesfromthelifeboat" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+			
+		</section>
+	</article>
+	</div>
+
+	<footer class="site-footer">
+	<p class="text">&copy; 2020 - Released under the MIT license<br>Powered by <a href="//gohugo.io/">Hugo</a> with the <a href="//github.com/digitalcraftsman/hugo-type-theme">Type Theme</a></p>
+</footer>
+
+
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-27980065-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+</body>
+</html>

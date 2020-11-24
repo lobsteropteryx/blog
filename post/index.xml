@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on Notes from the Lifeboat</title>
+    <link>https://notesfromthelifeboat.com/post/</link>
+    <description>Recent content in Posts on Notes from the Lifeboat</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Tue, 24 Nov 2020 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://notesfromthelifeboat.com/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Why Use a Board?</title>
+      <link>https://notesfromthelifeboat.com/post/why-use-a-board/</link>
+      <pubDate>Tue, 24 Nov 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/why-use-a-board/</guid>
+      <description>A lot of teams have moved from being colocated to distributed recently, and quite a few people are jumping in to defend their tool of choice for representing &amp;ldquo;cards on a wall.&amp;rdquo; Jira-bashing is always popular, but one thing I&amp;rsquo;ve noticed is that folks aren&amp;rsquo;t necessarily optimizing for the same things; the result can often be a focus on tooling, and reducing the discussion to &amp;ldquo;which board is better&amp;rdquo;, rather than understanding what problems these tools help us to solve.</description>
+    </item>
+    
+    <item>
+      <title>Iterating on our Hiring Process</title>
+      <link>https://notesfromthelifeboat.com/post/iterating-on-our-hiring-process/</link>
+      <pubDate>Wed, 29 Jan 2020 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/iterating-on-our-hiring-process/</guid>
+      <description>Note: This post was originally published on our company site, which has since been taken offline.
+The last half of 2019 brought some big changes for us at Digital Solutions: We had a team member leave, and we also saw substantial growth. That meant needing to hire four new folks, taking our team of six to ten. As a small, bootstrapped company without a dedicated hiring manager, we have to prioritize our hiring and make room for it in our daily work; at the same time, our size gives us a lot of freedom to experiment with our hiring practices.</description>
+    </item>
+    
+    <item>
+      <title>Our Path to Mobbing</title>
+      <link>https://notesfromthelifeboat.com/post/our-path-to-mobbing/</link>
+      <pubDate>Mon, 21 Oct 2019 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/our-path-to-mobbing/</guid>
+      <description>Note: This post was originally published on our company site, which has since been taken offline.
+This is an experience report from our team, who first dabbled with mob programming two years ago; since then we have adopted it as part of our core culture, and continue to spread it throughout our organization and clients. We talk a bit about who inspired us, how we convinced our leaders to let us try it, and where we ended up.</description>
+    </item>
+    
+    <item>
+      <title>Automating Letsencrypt Certs on Azure Functions</title>
+      <link>https://notesfromthelifeboat.com/post/azure-function-letsencrypt/</link>
+      <pubDate>Mon, 30 Jul 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/azure-function-letsencrypt/</guid>
+      <description>Azure Functions are Microsoft&amp;rsquo;s serverless offering, and they can be a great option for building simple, scalable applications and APIs. A common practice is to apply a CNAME with your custom domain to the Azure DNS entry, and have users access your application from that domain, &amp;ldquo;hiding&amp;rdquo; the implementation. Today HTTPS is necessary, and Azure has built-in capability to apply a custom domain and certificate to your Function App.
+If you want to get your certificates from Letsencrypt, there is a site extension by Simon J.</description>
+    </item>
+    
+    <item>
+      <title>Deploying from a Git Tag with Jenkins Pipelines</title>
+      <link>https://notesfromthelifeboat.com/post/deploying-from-a-git-tag/</link>
+      <pubDate>Sat, 16 Jun 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/deploying-from-a-git-tag/</guid>
+      <description>In a previous post I outlined a workflow to create and trigger a pipeline job in Jenkins whenever a git tag is pushed. A common step in this type of workflow is to deploy to a staging environment once all the build and test steps are successful.
+One way to accomplish this is by using parameters&amp;ndash;a typical (declarative) job definition might look like:
+pipeline { agent { label &amp;#39;myLabel&amp;#39; } parameters { choice(choices: &amp;#39;staging\nproduction&amp;#39;, description: &amp;#39;Which environment?</description>
+    </item>
+    
+    <item>
+      <title>Building Git Tags with Jenkins Pipelines</title>
+      <link>https://notesfromthelifeboat.com/post/building-git-tags-with-jenkins/</link>
+      <pubDate>Tue, 10 Apr 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/building-git-tags-with-jenkins/</guid>
+      <description>There seem to be a lot of questions around making Jenkins pipelines work with git tags; having set this up recently, I thought I&amp;rsquo;d write a quick summary of one workable approach.
+Workflow This post covers a specific workflow used by my team; in particular, we don&amp;rsquo;t do pull requests, and we use tags to denote releases, which are automatically deployed. We tag our releases manually, so we aren&amp;rsquo;t configuring Jenkins to tag every build, but rather to watch for new tags to be pushed, and execute builds for them.</description>
+    </item>
+    
+    <item>
+      <title>Protecting Secrets in SaltStack Configuration</title>
+      <link>https://notesfromthelifeboat.com/post/salt-secrets/</link>
+      <pubDate>Wed, 07 Feb 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/salt-secrets/</guid>
+      <description>I came across a situation recently where secrets were being leaked via SaltStack deployments, run from a CI job. I&amp;rsquo;ll explain how this can happen, and give some suggestions to reduce the risk.
+A common workflow in SaltStack is to store secrets in a pillar on the salt master, which allows data to be encrypted until compilation. The file.managed module can then be used to templatize configuration files and inject secrets from the encrypted pillars.</description>
+    </item>
+    
+    <item>
+      <title>Test Speed</title>
+      <link>https://notesfromthelifeboat.com/post/test-speed/</link>
+      <pubDate>Sat, 27 Jan 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/test-speed/</guid>
+      <description>I recently did some work on a somewhat neglected C# code base; the basic function of the application was to pull down some custom reports from a third-party web API, parse the results, and store them in a database. There were a few obvious design problems, and the application hadn&amp;rsquo;t been built or deployed in years, but it did include a small test suite&amp;ndash;around 50 unit tests, written with Microsoft&amp;rsquo;s testing framework.</description>
+    </item>
+    
+    <item>
+      <title>Automating Analysis Services Tabular Projects - Part 2: Testing</title>
+      <link>https://notesfromthelifeboat.com/post/analysis-services-2-testing/</link>
+      <pubDate>Sun, 07 Jan 2018 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/analysis-services-2-testing/</guid>
+      <description>The past few weeks at work, I&amp;rsquo;ve been building out a process for automation of a Microsoft Tabular Model project; in a previous post I described how we automated the deployment process, and this post will focus on testing. A full, working sample project is available on GitHub.
+The Problem: Testing Measures In SQL terms, a measure is somewhere between a view and an analytic function; it&amp;rsquo;s a calculation used to dynamically aggregate and filter report tables, and it can contain a fair bit of logic.</description>
+    </item>
+    
+    <item>
+      <title>Automating Analysis Services Tabular Projects - Part 1: Deployment</title>
+      <link>https://notesfromthelifeboat.com/post/analysis-services-1-deployment/</link>
+      <pubDate>Sat, 23 Dec 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/analysis-services-1-deployment/</guid>
+      <description>My team recently starting using Microsoft&amp;rsquo;s Tabular Model databases at work, as an intermediate layer between an operational data store and the end users who consume this data from Power BI. Tabular Models are an OLAP technology, providing an in-memory data cube, with measures being defined using either MDX or DAX query languages.
+As we were learning about the stack, we realized that there wasn&amp;rsquo;t much documentation around automated deployment or testing of Tabular Models; the typical deployment story seemed to be &amp;ldquo;right click -&amp;gt; publish&amp;rdquo; from Visual Studio.</description>
+    </item>
+    
+    <item>
+      <title>Testing Declarative Code</title>
+      <link>https://notesfromthelifeboat.com/post/testing_declarative_code/</link>
+      <pubDate>Sun, 17 Dec 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/testing_declarative_code/</guid>
+      <description>We&amp;rsquo;ve had some interesting discussions on our team recently, about the level of testing required for some very declarative sections of our codebase. I&amp;rsquo;ve been thinking about this subject a lot, especially after reading a recent post by Kent Beck.
+The fundamental problem we were trying to solve was this: We have a Python dictionary that represents an entity&amp;ndash;in this case, a person. All of its values are strings:</description>
+    </item>
+    
+    <item>
+      <title>Publishing Geoprocessing Services with SLAP</title>
+      <link>https://notesfromthelifeboat.com/post/slap-gp/</link>
+      <pubDate>Sat, 09 Dec 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/slap-gp/</guid>
+      <description>I&amp;rsquo;ve been working to add support in slap for publishing Geoprocessing (GP) services; the workflow outlined here will work with both Python Toolboxes as well as the older, binary .tbx file format.
+Similar to map services, it&amp;rsquo;s possible to publish geoprocessing services as part of a docker build; all of the scripts, tools, and dockerfiles used in this example are available on github:
+ slap base docker images test image test data and scripts  Publishing from a Result File The createGPSDDraft method takes either a Result object or a path to a result (.</description>
+    </item>
+    
+    <item>
+      <title>Publishing Map Services as Part of a Docker Build</title>
+      <link>https://notesfromthelifeboat.com/post/docker-publishing-docker-build/</link>
+      <pubDate>Thu, 10 Aug 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/docker-publishing-docker-build/</guid>
+      <description>A lot of smart people have worked to get ArcGIS Server (AGS) up and running in a docker container; it&amp;rsquo;s a fast and convenient way to test applications that require an AGS instance to function.
+It&amp;rsquo;s possible to streamline things even further by registering data and publishing services as part of the docker build process; this allows you to keep your infrastucture, data, and service definitions under source control, and use those to build an image with all the necessary services included.</description>
+    </item>
+    
+    <item>
+      <title>Test Time</title>
+      <link>https://notesfromthelifeboat.com/post/test-time/</link>
+      <pubDate>Sat, 29 Jul 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/test-time/</guid>
+      <description>I&amp;rsquo;ve spent a good deal of time helping teams adopt automated testing as a part of their workflow; one thing that I&amp;rsquo;ve often heard from folks who aren&amp;rsquo;t familiar with the methodology is the following:
+ &amp;ldquo;How much time do you estimate for writing unit tests?&amp;rdquo;
+ Usually what people are looking for is something like, &amp;ldquo;I need X hours for the production code, and Y hours for writing tests for this feature.</description>
+    </item>
+    
+    <item>
+      <title>Six Essentials for a Python Project</title>
+      <link>https://notesfromthelifeboat.com/post/python-project/</link>
+      <pubDate>Sun, 23 Jul 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/python-project/</guid>
+      <description>I&amp;rsquo;ve seen a lot of GIS developers struggle to create a good project structure when building Python applications; often there&amp;rsquo;s a transition from one enormous file with a single method to a &amp;ldquo;real&amp;rdquo; software project, with modular design, well defined dependencies, and the necessary tooling.
+The goal of this post is to be a summary and short checklist; these steps can improve almost any project, and are easy to implement.</description>
+    </item>
+    
+    <item>
+      <title>Using Virtualenv with ArcPy</title>
+      <link>https://notesfromthelifeboat.com/post/arcpy-virtualenv/</link>
+      <pubDate>Sun, 16 Jul 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/arcpy-virtualenv/</guid>
+      <description>Virtualenv allows you to create a repeatable, isolated environment for your project and its dependencies, without worrying about what packages and versions are installed globally on your development machine. This is a standard tool for most python projects, but since arcpy is installed as a separate, global package, using virtual environments is a little more difficult.
+There are a couple of approaches to tackling this problem; either adding a .</description>
+    </item>
+    
+    <item>
+      <title>Testing with ArcPy: Isolation and Mocking</title>
+      <link>https://notesfromthelifeboat.com/post/testing-arcpy-2/</link>
+      <pubDate>Tue, 11 Jul 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/testing-arcpy-2/</guid>
+      <description>Test fixtures can help us run our each of our tests against a clean set of known data, but arcpy can still throw a few curve balls at us&amp;ndash;there are global singletons we need to be aware of (i.e., arcpy.env), and many GP tools can have side effects (such as changing the current working directory) or limitations of their own (i.e., the Project and Copy tools don&amp;rsquo;t support in-memory workspaces).</description>
+    </item>
+    
+    <item>
+      <title>Testing with ArcPy: Test Driving Geodatabase Changes Using Fixtures</title>
+      <link>https://notesfromthelifeboat.com/post/testing-arcpy-1/</link>
+      <pubDate>Tue, 04 Jul 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/testing-arcpy-1/</guid>
+      <description>Test Driven Development has been a major part of the discipline of software engineering for almost two decades; a Red-Green-Refactor cycle helps keep codebases maintainable, while lowering the risk of adding new features by protecting against regression and facilitating extensible designs.
+The design and history of arcpy and its related modules can make it difficult to test, and automation is not always given high priority in GIS projects. Nevertheless, there are techniques to help ease the process, and it&amp;rsquo;s relatively easy to test drive the development of GIS software.</description>
+    </item>
+    
+    <item>
+      <title>Pipe Down</title>
+      <link>https://notesfromthelifeboat.com/post/pipe-down/</link>
+      <pubDate>Wed, 03 May 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/pipe-down/</guid>
+      <description>As a full-time remote developer, it goes without saying that an internet connection is a requirement; every developer will be pushing and pulling from source control, chatting via slack, and performing hundreds thousands of package installs and/or stack overflow searches.
+I also spend a lot of time using some sort of screensharing tool&amp;ndash;all of our production code is written in pairs over screenhero, and we do our daily standups, architecture discussions, and watercooler sessions over Google Hangouts.</description>
+    </item>
+    
+    <item>
+      <title>TIS</title>
+      <link>https://notesfromthelifeboat.com/post/tis/</link>
+      <pubDate>Tue, 10 Jan 2017 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/tis/</guid>
+      <description>Look at any modern application, ETL process, or data analysis, and you&amp;rsquo;re likely to find a textual component. While the ubiquity and value of textual information is clear, working with text requires specialized training and knowledge that often fall outside the realm of traditional developers and analysts. The power and insight that can be gained from textual data coupled with the unique skills needed have led to an explosion of demand in the text industry.</description>
+    </item>
+    
+    <item>
+      <title>Ignore this Post</title>
+      <link>https://notesfromthelifeboat.com/post/getignore/</link>
+      <pubDate>Mon, 26 Dec 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/getignore/</guid>
+      <description>Lately I&amp;rsquo;ve come across several software projects at work that have build artifacts checked into their repositories&amp;ndash;nuget packages for .NET, minified bundles on javascript projects, and .pyc files in Python modules.
+Consultants in the field of GIS often work across multiple languages, and it can be difficult to keep track of which files should be ignored by source control; luckily there is a collection of standard .gitignore templates. If you find that your project has files checked in that are included in one of the templates, that&amp;rsquo;s a good sign that something is amiss!</description>
+    </item>
+    
+    <item>
+      <title>Vim</title>
+      <link>https://notesfromthelifeboat.com/post/vim/</link>
+      <pubDate>Thu, 24 Nov 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/vim/</guid>
+      <description>So I&amp;rsquo;m at SCNA, participating in the Code Retreat. If you&amp;rsquo;ve never done one, the idea is that you pair up with another developer, and work on Conway&amp;rsquo;s Game of Life for 45 minutes, using TDD. At the end of each 45 minute block there&amp;rsquo;s a short retrospective, then you pair with a different person and start all over again. Subsequent blocks might also have restrictions, such as &amp;ldquo;no passing primitives across function boundaries.</description>
+    </item>
+    
+    <item>
+      <title>What I Want</title>
+      <link>https://notesfromthelifeboat.com/post/what-i-want/</link>
+      <pubDate>Mon, 03 Oct 2016 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/what-i-want/</guid>
+      <description>Developer Retention I&amp;rsquo;ve been having a lot of discussions lately with other devs about job satisfaction; seems like many of us want the same things, but I thought I&amp;rsquo;d capture a few thoughts here.
+I want to use best practices If I was interviewing someone who had no experience with automated testing or continuous integration, I&amp;rsquo;d be a little worried. Likewise if they weren&amp;rsquo;t familiar with modern project management practices that focus on quick iteration and delivering value, or if they had no concept of the value proposition of open source.</description>
+    </item>
+    
+    <item>
+      <title>Homework</title>
+      <link>https://notesfromthelifeboat.com/post/homework/</link>
+      <pubDate>Thu, 10 Oct 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/homework/</guid>
+      <description>The other day I was called upon to help a 5th grader with her homework. She had gotten the first two problems right, but was having some difficulty with the third one:
+I can&amp;rsquo;t help but wonder who chose that problem, and what their intention was; if it&amp;rsquo;s supposed to be a way to get kids thinking about algorithms and the idea of proof, that&amp;rsquo;s great. Probably most kids would start off okay&amp;ndash;you find all the paths and pick the shortest one.</description>
+    </item>
+    
+    <item>
+      <title>Numbering Points within a Polygon</title>
+      <link>https://notesfromthelifeboat.com/post/numbering-points-within-a-polygon/</link>
+      <pubDate>Mon, 30 Sep 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/numbering-points-within-a-polygon/</guid>
+      <description>This is the sort of thing that seems really easy in hindsight, but it took me a little while to get right.
+There are lots of things that I don&amp;rsquo;t like about PL/SQL, but I often prefer to do spatial operations at the table level inside the database, rather than using ArcPy or ArcObjects; I think that it&amp;rsquo;s easier to reuse queries like this, the code tends to be more readable and concise, and performance is almost always significantly better.</description>
+    </item>
+    
+    <item>
+      <title>Unconventional</title>
+      <link>https://notesfromthelifeboat.com/post/unconventional/</link>
+      <pubDate>Sat, 14 Sep 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/unconventional/</guid>
+      <description>I’ve been thinking a lot lately about the idea of convention in software development. The more I’ve worked with the ASP.NET MVC framework and nHibernate, and dabbled with Django, the more I’ve been able to see the benefits of designing and coding this way. It’s also made me consider my own biases and background, and realize why I’ve struggled with the idea in the past.
+I started out as an embedded developer, and for a long time, everything I wrote was in C or some flavor of assembler.</description>
+    </item>
+    
+    <item>
+      <title>Dependency Injection</title>
+      <link>https://notesfromthelifeboat.com/post/dependency-injection/</link>
+      <pubDate>Thu, 13 Jun 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/dependency-injection/</guid>
+      <description>My car broke down the other night; I had dinner with a friend, and left the restaurant to find that my car wouldn&amp;rsquo;t start. I ran back around the building, just in time to see my buddy driving off. Chased him five or six blocks, across the street, up a hill. When I got to the top, he was gone. Walked back to the parking lot, flagged down a helpful passer-by, and tried a jump-start; nothing.</description>
+    </item>
+    
+    <item>
+      <title>So Many Ways...</title>
+      <link>https://notesfromthelifeboat.com/post/so-many-ways/</link>
+      <pubDate>Sun, 09 Jun 2013 00:00:00 +0000</pubDate>
+      
+      <guid>https://notesfromthelifeboat.com/post/so-many-ways/</guid>
+      <description>&#34;There are too many languages today, and it would be a good idea to choose just one.&#34; Richard Feynman, Nishina Memorial Lecture &#34;The Computing Machines in the Future,&#34; Tokyo, Japan, 1985 (from Selected Papers of Richard Feynman)  A couple weeks ago, I started thinking about writing a simple blogging framework, and, I guess, a blog? Of course, there is approximately zero need for more blogs, or more software for making blogs&amp;ndash;there are plenty of great platforms out there, if all you want to do is write down some thoughts that no one will ever read.</description>
+    </item>
+    
+  </channel>
+</rss>

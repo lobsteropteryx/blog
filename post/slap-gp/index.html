@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<title>Publishing Geoprocessing Services with SLAP&middot; Notes from the Lifeboat</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author" content="Ian Firkin">
+	<meta name="description" content="Dim interlocutions">
+	
+	<meta name="generator" content="Hugo 0.42" />
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/main.css">
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/syntax.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="https://notesfromthelifeboat.com/favicon.ico" type="image/x-icon">
+
+	<!-- RSS -->
+	
+
+	<!-- Font Awesome -->
+	<link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/default.min.css">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+	<header class="site-header">
+	<div class="branding">
+		<a href="https://notesfromthelifeboat.com/">
+		<img class="avatar" src="https://notesfromthelifeboat.com/img/avatar.png" alt=""/>
+		</a>
+		<h1 class="site-title">
+			<a href="https://notesfromthelifeboat.com/">Notes from the Lifeboat</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+			<li><a href="/about/"> About </a></li>
+
+			<li class="icon">
+	<a href="https://notesfromthelifeboat.com/" title="">
+		<i class="fa fa-fw fa-home"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="https://notesfromthelifeboat.com/index.xml" title="Subcribe">
+		<i class="fa fa-fw fa-rss"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="mailto:ian.firkin@gmail.com" title="Email">
+		<i class="fa fa-fw fa-envelope"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://github.com/lobsteropteryx" title="GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://twitter.com/lobsteropteryx" title="Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+
+	<div class="content">
+	<article>
+		<header>
+			<h1 class="title">Publishing Geoprocessing Services with SLAP</h1>
+			<p class="meta">
+	December 9, 2017 &middot; 3 minute read
+
+	
+</p>
+
+		</header>
+
+		<section class="post-content">
+			
+
+<p>I&rsquo;ve been working to add support in <a href="https://github.com/lobsteropteryx/slap">slap</a> for publishing Geoprocessing (GP) services; the workflow outlined here will work with both <a href="http://pro.arcgis.com/en/pro-app/arcpy/geoprocessing_and_python/creating-a-new-python-toolbox.htm">Python Toolboxes</a> as well as the older, binary <code>.tbx</code> file format.</p>
+
+<p>Similar to <a href="/post/docker-publishing-docker-build">map services</a>, it&rsquo;s possible to publish geoprocessing services as part of a docker build; all of the scripts, tools, and dockerfiles used in this example are available on github:</p>
+
+<ul>
+<li><a href="https://github.com/lobsteropteryx/slap">slap</a></li>
+<li><a href="https://github.com/lobsteropteryx/docker-esri">base docker images</a></li>
+<li><a href="https://github.com/lobsteropteryx/slap-docker-test">test image</a></li>
+<li><a href="https://github.com/lobsteropteryx/slap-test">test data and scripts</a></li>
+</ul>
+
+<h2 id="publishing-from-a-result-file">Publishing from a Result File</h2>
+
+<p>The <a href="http://pro.arcgis.com/en/pro-app/arcpy/functions/creategpsddraft.htm">createGPSDDraft</a> method takes either a <a href="http://pro.arcgis.com/en/pro-app/arcpy/classes/result.htm">Result</a> object or a path to a result (<code>.rlt</code>) file as its first argument.  It&rsquo;s possible to use a result file as an artifact for publishing a GP service, similar to the way that <code>.mxd</code> files work for map services, but there are some limitations.</p>
+
+<p>The problem with using result files as artifacts is that path information gets encoded in the file, and there&rsquo;s no <code>relativePaths</code> setting for a GP result the way there is for <a href="http://desktop.arcgis.com/en/arcmap/10.3/analyze/arcpy-mapping/mapdocument-class.htm">map documents</a>.  It&rsquo;s difficult to determine the cause of failure based on the error messages&ndash;the only output is a <code>ValueError</code>, even when the <code>.rlt</code> file itself exists.</p>
+
+<p>As an example, if you generate a result file on a windows machine, then try to publish it from an AGS instance running on linux, you&rsquo;ll see output like the following:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">  File <span class="s2">&#34;C:\Program Files\ArcGIS\Server\arcpy\arcpy\__init__.py&#34;</span>, line <span class="m">1960</span>, in CreateGPSDDraft
+    <span class="k">return</span> gp.createGPSDDraft<span class="o">(</span>result, out_sddraft, service_name, server_type, connection_file_path, copy_data_to_server, folder_name, summary, tags, executionType, resultMapServer, showMessages, maximumRecords, minInstances, maxInstances, maxUsageTime, maxWaitTime, maxIdleTime<span class="o">)</span>
+  File <span class="s2">&#34;C:\Program Files\ArcGIS\Server\arcpy\arcpy\geoprocessing\_base.py&#34;</span>, line <span class="m">483</span>, in createGPSDDraft
+    <span class="k">return</span> self._gp.createGPSDDraft<span class="o">(</span>result, out_sddraft, service_name, server_type, connection_file_path, copy_data_to_server, folder_name, summary, tags, executionType, resultMapServer, showMessages, maximumRecords, minInstances, maxInstances, maxUsageTime, maxWaitTime, maxIdleTime<span class="o">)</span>
+ValueError: Z:<span class="se">\h</span>ome<span class="se">\a</span>rcgis<span class="se">\s</span>ervices<span class="se">\t</span>est.rlt</code></pre></div>
+<p>AGS on linux runs in WINE, and maps the root directory to <code>Z:/</code>.  The result file was generated on a windows machine in <code>C:\ArcGIS</code>, and so the paths in the result file don&rsquo;t match, and the publishing call fails.</p>
+
+<p>If we generate the result file in the same location where it will be published from, we can avoid the above error.  In the example above, we&rsquo;re publishing as part of a docker build, and the <code>.rlt</code> file will be published from <code>Z:/home/arcgis/services</code> on the server.</p>
+
+<p>To generate the result file from a windows machine and then publish it on a linux server, we can create a <a href="https://technet.microsoft.com/en-us/library/gg318052(v=ws.10).aspx">vhd</a>, assign the drive letter <code>Z:</code>, and make sure that we have a matching directory structure.  Running the tool manually from this location will give us a result file that will be compatible with the publication directory on the linux server.  We can create this file once, and then use it (and it&rsquo;s associated <code>.xml</code> metadata files) as artifacts.</p>
+
+<p><img src="/images/slap-gp-1.png" alt="vhd-path" /></p>
+
+<p>Note that this can also be an issue when generating result files from a user directory on a workstation (i.e., <code>C:/Users/MyUsername/Documents/ArcGIS</code>)  which doesn&rsquo;t exist on the server.  The bottom line is, the path where the result file is generated must match the location it will be published from later.</p>
+
+<h2 id="filling-in-tool-metadata">Filling in Tool Metadata</h2>
+
+<p>Once we&rsquo;ve made sure that the paths within the result file match, we get a different error:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">RuntimeError: <span class="o">(</span><span class="s1">&#39;Analysis contained errors: &#39;</span>, <span class="o">{(</span>u<span class="s1">&#39;ERROR 001243: The SlapTest/in_features parameter is missing a syntax dialog explanation in the item description&#39;</span>, <span class="m">92</span><span class="o">)</span>: <span class="o">[]</span>, <span class="o">(</span>u<span class="s1">&#39;ERROR 001242: Tool Slap Test is missing item description summary&#39;</span>, <span class="m">80</span><span class="o">)</span>: <span class="o">[]})</span></code></pre></div>
+<p>As it turns out, certain metadata is required for publication of the tool succeed; each tool in the toolbox needs to have it&rsquo;s summary field filled in.  You can do this from ArcMap by right-clicking the tool, then selecting &ldquo;Item Description&rdquo; from the context menu:</p>
+
+<p><img src="/images/slap-gp-2.png" alt="metadata" /></p>
+
+<p>This will open a new metadata dialog, where you can edit the item summary:</p>
+
+<p><img src="/images/slap-gp-3.png" alt="metadata-edit" /></p>
+
+<p>Once the summary metadata is filled in, we need to run the tool again to recreate our result file, and we&rsquo;re off to the races:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">Publishing test.pyt
+test.pyt published successfully</code></pre></div>
+<p><img src="/images/slap-gp-4.png" alt="docker-services" /></p>
+
+<p><img src="/images/slap-gp-5.png" alt="docker-gp-success-pyt" /></p>
+
+<p><img src="/images/slap-gp-6.png" alt="docker-gp-success-tbx" /></p>
+
+
+			
+				<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "notesfromthelifeboat" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+			
+		</section>
+	</article>
+	</div>
+
+	<footer class="site-footer">
+	<p class="text">&copy; 2020 - Released under the MIT license<br>Powered by <a href="//gohugo.io/">Hugo</a> with the <a href="//github.com/digitalcraftsman/hugo-type-theme">Type Theme</a></p>
+</footer>
+
+
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-27980065-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+</body>
+</html>

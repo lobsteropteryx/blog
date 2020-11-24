@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<title>Publishing Map Services as Part of a Docker Build&middot; Notes from the Lifeboat</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author" content="Ian Firkin">
+	<meta name="description" content="Dim interlocutions">
+	
+	<meta name="generator" content="Hugo 0.42" />
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/main.css">
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/syntax.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="https://notesfromthelifeboat.com/favicon.ico" type="image/x-icon">
+
+	<!-- RSS -->
+	
+
+	<!-- Font Awesome -->
+	<link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/default.min.css">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+	<header class="site-header">
+	<div class="branding">
+		<a href="https://notesfromthelifeboat.com/">
+		<img class="avatar" src="https://notesfromthelifeboat.com/img/avatar.png" alt=""/>
+		</a>
+		<h1 class="site-title">
+			<a href="https://notesfromthelifeboat.com/">Notes from the Lifeboat</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+			<li><a href="/about/"> About </a></li>
+
+			<li class="icon">
+	<a href="https://notesfromthelifeboat.com/" title="">
+		<i class="fa fa-fw fa-home"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="https://notesfromthelifeboat.com/index.xml" title="Subcribe">
+		<i class="fa fa-fw fa-rss"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="mailto:ian.firkin@gmail.com" title="Email">
+		<i class="fa fa-fw fa-envelope"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://github.com/lobsteropteryx" title="GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://twitter.com/lobsteropteryx" title="Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+
+	<div class="content">
+	<article>
+		<header>
+			<h1 class="title">Publishing Map Services as Part of a Docker Build</h1>
+			<p class="meta">
+	August 10, 2017 &middot; 6 minute read
+
+	
+</p>
+
+		</header>
+
+		<section class="post-content">
+			
+
+<p>A lot of <a href="https://github.com/mraad/docker-arcgis">smart people</a> have worked to get ArcGIS Server (AGS) up and running in a docker container; it&rsquo;s a fast and convenient way to test applications that require an AGS instance to function.</p>
+
+<p>It&rsquo;s possible to streamline things even further by registering data and publishing services as part of the docker <a href="https://docs.docker.com/engine/reference/commandline/build/">build</a> process; this allows you to keep your infrastucture, data, and service definitions under source control, and use those to build an image with all the necessary services included.  You can version this image and store it your own <a href="https://docs.docker.com/registry/">registry</a>, allowing developers to spin up a local, fully provisioned AGS instance in a few seconds.</p>
+
+<p>You can extend this approach with tools like <a href="https://docs.docker.com/compose/">docker compose</a> to include a database server and Portal instance, but for this example, we&rsquo;ll use a very simple setup:</p>
+
+<ul>
+<li>A base AGS image with no security or Portal&ndash;we&rsquo;ll use AGS 10.4</li>
+<li>A single File Geodatabase (FGDB) containing our data</li>
+<li>A set of map documents sourced to the above FGDB</li>
+<li>A <a href="https://github.com/lobsteropteryx/slap">slap</a> configuration file describing the map services we want to publish</li>
+</ul>
+
+<p>A full working example is available on github; the code is split across three repositories for the <a href="https://github.com/lobsteropteryx/docker-esri/tree/10.4">base images</a>, <a href="https://github.com/lobsteropteryx/slap-test">data</a> and <a href="https://github.com/lobsteropteryx/slap-docker-test/tree/10.4">custom image</a>.</p>
+
+<h3 id="a-note-about-support">A Note about Support</h3>
+
+<p>ESRI does <em>not</em> support running AGS in a container (they only barely support running on Linux, and much of the code is actually executed in <a href="https://www.winehq.org/">WINE</a>).  Running AGS in a container is obviously not recommended for production systems, but it still has some utility as a test environment.</p>
+
+<h2 id="base-ags-image">Base AGS Image</h2>
+
+<p>First you&rsquo;ll need to build your base AGS images, at whichever version(s) you want to use for testing; a  set of dockerfiles and scripts with a short walkthrough is available on <a href="https://github.com/lobsteropteryx/docker-esri/tree/10.4">github</a>.</p>
+
+<h2 id="data-and-map-documents">Data and Map Documents</h2>
+
+<p>Our data and service definitions may change independently of the infrastructure; for example, we may want to publish the same services to multiple different AGS versions, in order to test a new upgrade.  Because of this, we want to store our data in a separate repository from our dockerfiles.</p>
+
+<p>For this example, we create an FGDB containing the feature classes we want to build our services off of.  We also need a map document for each service we want to publish, with all of its layers sourced to the FGDB.</p>
+
+<p>Note that when we save the map documents, we want to set the &ldquo;<a href="http://desktop.arcgis.com/en/arcmap/latest/map/working-with-arcmap/referencing-data-in-the-map.htm">Store Relative Paths</a>&rdquo; checkbox, so that the map documents and data can travel together.</p>
+
+<p>Once you have the database and map documents created, you can check them into source control; the result should look something like <a href="https://github.com/lobsteropteryx/slap-test/">this</a>.</p>
+
+<h2 id="slap-configuration-file">SLAP Configuration File</h2>
+
+<p>For this example, we&rsquo;re using <a href="https://github.com/lobsteropteryx/slap">slap</a> to publish our services; you can see an example config file <a href="https://github.com/lobsteropteryx/slap-test/blob/master/config.json">here</a>.</p>
+
+<p>There are a couple of things to note&ndash;the base URL should be the name of our <code>docker-machine</code>, and we need to register our FGDB as a data source.  The example also includes the path to the trusted certificate store on our centos machine, so that we can publish over HTTPS; if you want to use HTTP and port 6080 for your base URL, this isn&rsquo;t necessary.</p>
+
+<p>The config file can be checked in alongside the FGDB and map documents; together these three pieces will describe all the map services on our server.</p>
+
+<p>Slap isn&rsquo;t required to publish services; if you have custom arcpy scripts and service definition files that you&rsquo;re already using to automate publishing, those will work as well&ndash;you may need to adjust some of the scripting, and you&rsquo;ll have to figure out the site creation.</p>
+
+<h2 id="creating-a-custom-docker-image">Creating a Custom Docker Image</h2>
+
+<p>Now we need to create an image to represent our AGS instance with a specific set of services on it; in order to create this artifact, we need to do a few things:</p>
+
+<ul>
+<li>Copy our data and map documents onto the server</li>
+<li>Install slap</li>
+<li>Call slap to create a new AGS site and publish our services</li>
+</ul>
+
+<p>We can pull our data from git using a shallow copy, since we don&rsquo;t need the history:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">git clone --depth <span class="m">1</span> git@github.com:lobsteropteryx/slap-test.git data</code></pre></div>
+<p>Making python calls in an AGS linux instance is a little complex&ndash;because arcpy and many of the AGS libraries run in WINE, we <em>don&rsquo;t</em> want to use the system python; instead, we need to call a shell script that sets up the WINE environment, and then calls python.  This script is included with the AGS installation, and is located at <code>/home/arcgis/server/tools/python</code>.</p>
+
+<p>To install slap into the WINE version of <code>site_packages</code>, we use the <code>-m</code> argument of python, to call the pip module:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">/home/arcgis/server/tools/python -m pip install slap</code></pre></div>
+<p>To call slap itself, we use a similar call, passing the slap cli as the module:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">/home/arcgis/server/tools/python -m slap.cli publish <span class="se">\
+</span><span class="se"></span>  --name <span class="nv">$HOSTNAME</span> <span class="se">\
+</span><span class="se"></span>  --username<span class="o">=</span>siteadmin <span class="se">\
+</span><span class="se"></span>  --password<span class="o">=</span>51734dm1n <span class="se">\
+</span><span class="se"></span>  --site</code></pre></div>
+<p>The <code>--site</code> argument will create a default site before publishing any services, with the username and password we specify; this will only ever be called once when we build the image, so we don&rsquo;t need to worry about overwriting anything.</p>
+
+<p>If we want to publish over HTTPS, we also need to add the default, self-signed certificate to the trusted store on the OS; to do so, we can use openssl in a simple script:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">cp /etc/pki/tls/certs/ca-bundle.crt /etc/pki/tls/certs/ca-bundle-orig.crt
+
+<span class="nv">CERTFILE</span><span class="o">=</span>~/sscert.pem
+<span class="nb">echo</span> -n <span class="p">|</span> <span class="se">\
+</span><span class="se"></span>  openssl s_client -host <span class="nv">$HOSTNAME</span> -port <span class="m">6443</span> <span class="p">|</span> <span class="se">\
+</span><span class="se"></span>  sed -ne <span class="s1">&#39;/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p&#39;</span> &gt; <span class="nv">$CERTFILE</span> <span class="o">&amp;&amp;</span> <span class="se">\
+</span><span class="se"></span>  cat <span class="nv">$CERTFILE</span> &gt;&gt; /etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem <span class="o">&amp;&amp;</span> <span class="se">\
+</span><span class="se"></span>  cat <span class="nv">$CERTFILE</span> &gt;&gt; /etc/pki/ca-trust/extracted/pem/ca-bundle.trust.crt</code></pre></div>
+<p>If publishing over HTTP is adequate, this step is optional.</p>
+
+<p>It&rsquo;s possible to execute these commands directly from our Dockerfile using the <code>RUN</code> command, but saving the commands as shell scripts helps keep the logic separate and allows us to test the commands outside of the container; once we have a set of scripts in place we can add them to the image using the <code>COPY</code> command and then <code>RUN</code> the scripts during the build.</p>
+
+<p>You can find the full Dockerfile used for this example on <a href="https://github.com/lobsteropteryx/slap-docker-test/tree/10.4">github</a>.</p>
+
+<h2 id="building-the-image">Building the Image</h2>
+
+<p>Once the necessary scripts and Dockerfile are created, we can call <code>docker build</code> to create the image.  As part of the build, we&rsquo;ll copy our data and map documents into the image, install slap, and publish the services.  If we want to publish the same services across different versions of AGS, we can simply use a different base image for our dockerfile.  Our build command will look something like this:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">docker build<span class="se">\
+</span><span class="se"></span>  --force-rm<span class="o">=</span>true<span class="se">\
+</span><span class="se"></span>  --no-cache<span class="se">\
+</span><span class="se"></span>  --ulimit <span class="nv">nofile</span><span class="o">=</span><span class="m">65535</span>:65535<span class="se">\
+</span><span class="se"></span>  --ulimit <span class="nv">nproc</span><span class="o">=</span><span class="m">25059</span>:25059<span class="se">\
+</span><span class="se"></span>  -t slap-test-10.5 .</code></pre></div>
+<p>The image will only need to be rebuilt if something in our data or map documents changes; once the image is created, anyone can pull it down and use it <em>without</em> needing to publish any services.</p>
+
+<h2 id="running-the-image">Running the Image</h2>
+
+<p>Once the build is complete, we can spin up an AGS instance based on our image using <code>docker run</code>:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">docker run <span class="se">\
+</span><span class="se"></span>    -it --rm <span class="se">\
+</span><span class="se"></span>    --hostname arcgis <span class="se">\
+</span><span class="se"></span>    --memory-swappiness<span class="o">=</span><span class="m">0</span> <span class="se">\
+</span><span class="se"></span>    -p <span class="m">6080</span>:6080 <span class="se">\
+</span><span class="se"></span>    -p <span class="m">6443</span>:6443 <span class="se">\
+</span><span class="se"></span>    -p <span class="m">4000</span>:4000 <span class="se">\
+</span><span class="se"></span>    -p <span class="m">4001</span>:4001 <span class="se">\
+</span><span class="se"></span>    -p <span class="m">4002</span>:4002 <span class="se">\
+</span><span class="se"></span>    -p <span class="m">4003</span>:4003 <span class="se">\
+</span><span class="se"></span>slap-test-10.5</code></pre></div>
+<p>We need to open some ports for AGS to work properly, but once the container is up and running, we can access it either from <code>localhost</code> (on a linux or mac machine), or from the ip address of our VM on windows.  At this point we can interact with the instance just like any other AGS server&ndash;developing and testing web applications, desktop workflows, or even server extensions.</p>
+
+<p><img src="/images/docker-ags.png" alt="ags" /></p>
+
+
+			
+				<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "notesfromthelifeboat" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+			
+		</section>
+	</article>
+	</div>
+
+	<footer class="site-footer">
+	<p class="text">&copy; 2020 - Released under the MIT license<br>Powered by <a href="//gohugo.io/">Hugo</a> with the <a href="//github.com/digitalcraftsman/hugo-type-theme">Type Theme</a></p>
+</footer>
+
+
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-27980065-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+</body>
+</html>

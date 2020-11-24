@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<title>Six Essentials for a Python Project&middot; Notes from the Lifeboat</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author" content="Ian Firkin">
+	<meta name="description" content="Dim interlocutions">
+	
+	<meta name="generator" content="Hugo 0.42" />
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/main.css">
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/syntax.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="https://notesfromthelifeboat.com/favicon.ico" type="image/x-icon">
+
+	<!-- RSS -->
+	
+
+	<!-- Font Awesome -->
+	<link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/default.min.css">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+	<header class="site-header">
+	<div class="branding">
+		<a href="https://notesfromthelifeboat.com/">
+		<img class="avatar" src="https://notesfromthelifeboat.com/img/avatar.png" alt=""/>
+		</a>
+		<h1 class="site-title">
+			<a href="https://notesfromthelifeboat.com/">Notes from the Lifeboat</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+			<li><a href="/about/"> About </a></li>
+
+			<li class="icon">
+	<a href="https://notesfromthelifeboat.com/" title="">
+		<i class="fa fa-fw fa-home"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="https://notesfromthelifeboat.com/index.xml" title="Subcribe">
+		<i class="fa fa-fw fa-rss"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="mailto:ian.firkin@gmail.com" title="Email">
+		<i class="fa fa-fw fa-envelope"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://github.com/lobsteropteryx" title="GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://twitter.com/lobsteropteryx" title="Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+
+	<div class="content">
+	<article>
+		<header>
+			<h1 class="title">Six Essentials for a Python Project</h1>
+			<p class="meta">
+	July 23, 2017 &middot; 4 minute read
+
+	
+</p>
+
+		</header>
+
+		<section class="post-content">
+			
+
+<p>I&rsquo;ve seen a lot of GIS developers struggle to create a good project structure when building Python applications; often there&rsquo;s a transition from one enormous file with a single method to a &ldquo;real&rdquo; software project, with modular design, well defined dependencies, and the necessary tooling.</p>
+
+<p>The goal of this post is to be a summary and short checklist; these steps can improve almost any project, and are easy to implement.  Used properly, they can help ease developer onboarding, promote code reuse, and reduce the time spent on boilerplate activities and code.  Even the smallest applications can benefit from these tools and conventions, and it&rsquo;s rare to see any real-world project that doesn&rsquo;t include all of the following:</p>
+
+<ol>
+<li>Package management via <code>pip</code></li>
+<li>Environmental isolation using <code>virtualenv</code></li>
+<li>Standard <code>.gitignore</code> file</li>
+<li>Standard directory structure</li>
+<li><code>Setup.py</code> file to track versions and dependencies</li>
+<li>Test runner and scaffolding</li>
+</ol>
+
+<p>There is a wealth of great documentation about all of these tools; in particular, check out <a href="http://python-guide-pt-br.readthedocs.io/en/latest/">The Hitchhiker&rsquo;s Guide to Python</a> and the <a href="https://python-packaging-user-guide.readthedocs.io/">Python Packaging User&rsquo;s Guide</a>.</p>
+
+<h2 id="1-pip">1. Pip</h2>
+
+<p>If you aren&rsquo;t using a package manager to bring in your dependencies, you&rsquo;re making your life harder.  Modern python versions include <a href="https://pip.pypa.io/en/stable/">pip</a> by default; if you&rsquo;re using a python version older than 2.7.9 (that&rsquo;s ArcMap 10.3 and older), you&rsquo;ll need to <a href="https://pip.pypa.io/en/stable/installing/#installing-with-get-pip-py">install it</a>.</p>
+
+<p>With pip, you can bring in third-party libraries automatically, without having to rely on them already having been installed; rather than reading through documentation (or the source code!) and manually hunting down <code>requests</code>, <code>beautiful_soup</code>, etc, you can bring them all in just by doing <code>pip install</code>.</p>
+
+<h2 id="2-virtualenv">2. Virtualenv</h2>
+
+<p>GIS machines tend to get clogged up over time; a small number of staff responsible for a large number of projects is the norm, and those project tend to live a long time, requiring periodic maintenance.  Rather than installing all the dependencies of all our projects into the global <code>site_packages</code> directory, we can use <a href="/post/arcpy-virtualenv">virtual environments</a> to keep a separate set of dependencies and library versions for each project we work on.</p>
+
+<h2 id="3-gitignore">3. Gitignore</h2>
+
+<p>Pulling in the <a href="https://github.com/github/gitignore/blob/master/Python.gitignore">standard .gitignore</a> file right from the start will keep a lot of junk out of your repository&ndash;<code>.pyc</code> files, your virtual environment, and any editor-specific files don&rsquo;t need to be checked into version control.  If you want an easy tool to manage <code>.gitignore</code> templates, try <a href="/post/getignore.md">getignore</a>.</p>
+
+<h2 id="4-directory-structure">4. Directory Structure</h2>
+
+<p>The typical python project has a very simple directory structure&ndash;a top-level directory for the source files, a <code>tests</code> directory, and a few files (<code>setup.py</code>, <code>.gitignore</code>) in the root:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">├── my_project
+│   ├── __init__.py
+│   └── my_module.py
+├── setup.py
+├── .gitignore
+└── tests
+    ├── __init__.py
+    └── test_my_module.py</code></pre></div>
+<p>It&rsquo;s usually a good idea to keep your python projects fairly flat&ndash;each .py file will act as its own module.  If you need more nested directories, don&rsquo;t forget to add an <a href="https://docs.python.org/3/tutorial/modules.html#packages"><strong>init</strong>.py</a> file.</p>
+
+<h2 id="5-setup">5. Setup</h2>
+
+<p>The <a href="https://docs.python.org/2/distutils/setupscript.html">setup.py</a> file will define a few key pieces of information about our package&ndash;its name, version, and dependencies; if you&rsquo;re a javascript developer coming to python, <code>setup.py</code> is analogous to <code>package.json</code>.  A very simple setup.py might look like:</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">setuptools</span> <span class="kn">import</span> <span class="n">setup</span><span class="p">,</span> <span class="n">find_packages</span>
+
+<span class="n">setup</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s1">&#39;my_project&#39;</span><span class="p">,</span>
+    <span class="n">version</span><span class="o">=</span><span class="s1">&#39;1.0.0&#39;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Sample project for arcpy applications&#39;</span><span class="p">,</span>
+    <span class="n">url</span><span class="o">=</span><span class="s1">&#39;https://github.com/lobsteropteryx/arcpy-testing&#39;</span><span class="p">,</span>
+    <span class="n">author</span><span class="o">=</span><span class="s1">&#39;Ian Firkin&#39;</span><span class="p">,</span>
+    <span class="n">author_email</span><span class="o">=</span><span class="s1">&#39;ian.firkin@gmail.com&#39;</span><span class="p">,</span>
+    <span class="n">packages</span><span class="o">=</span><span class="n">find_packages</span><span class="p">(</span><span class="n">exclude</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;contrib&#39;</span><span class="p">,</span> <span class="s1">&#39;docs&#39;</span><span class="p">,</span> <span class="s1">&#39;tests&#39;</span><span class="p">]),</span>
+    <span class="n">install_requires</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;requests&#39;</span><span class="p">],</span>
+    <span class="n">extras_require</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;test&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;pytest&#39;</span><span class="p">,</span> <span class="s1">&#39;pytest-cov&#39;</span><span class="p">,</span> <span class="s1">&#39;pylint&#39;</span><span class="p">]</span>
+    <span class="p">},</span>
+    <span class="n">entry_points</span><span class="o">=</span><span class="p">{</span>
+        <span class="s1">&#39;console_scripts&#39;</span><span class="p">:</span> <span class="p">[]</span>
+    <span class="p">},</span>
+<span class="p">)</span></code></pre></div>
+<p><code>install_requires</code> are the dependencies our project needs to run&ndash;in this case, we&rsquo;re using <code>requests</code>.  <code>extras_require</code> is a list of additional dependencies used for development&ndash;our testing tools, linters, etc.</p>
+
+<h2 id="6-test-runner">6. Test Runner</h2>
+
+<p>Even if you have don&rsquo;t have any tests around your code yet, setting up the test runner and getting into the habit of running it before checking in can be a great first step; all you need is a <code>tests</code> directory, a module with the prefix <code>test_</code>, and a simple <code>pip install pytest</code>.</p>
+
+<p>Once these are in place, you can add tests a bit at a time; you can find low-hanging fruit in your existing code&ndash;maybe you have a pure function that is easy to write tests for.  And the next time you have to add a brand-new feature, you can implement it in a separate module, and practice using <a href="https://en.wikipedia.org/wiki/Test-driven_development">TDD</a>.</p>
+
+<h2 id="working-with-the-project">Working with the Project</h2>
+
+<p>Once we have everything in place, developing against this package is straightforward; with a few lines, a new developer can be up and running on a fresh machine:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">git clone git@github.com:lobsteropteryx/testing-arcpy.git
+<span class="nb">cd</span> testing-arcpy
+virtualenv --python C:/Python27/ArcGIS10.5/python.exe --system-site-packages venv
+<span class="nb">source</span> venv/Scripts/activate
+pip install .
+pip install .<span class="o">[</span>test<span class="o">]</span>
+pytest --cov<span class="o">=</span>my_project tests/</code></pre></div>
+<p>It&rsquo;s also easy to <a href="https://python-packaging-user-guide.readthedocs.io/tutorials/distributing-packages/">publish</a> your code as a package, so that it can be shared between applications, departments, or even across organizations.</p>
+
+
+			
+				<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "notesfromthelifeboat" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+			
+		</section>
+	</article>
+	</div>
+
+	<footer class="site-footer">
+	<p class="text">&copy; 2020 - Released under the MIT license<br>Powered by <a href="//gohugo.io/">Hugo</a> with the <a href="//github.com/digitalcraftsman/hugo-type-theme">Type Theme</a></p>
+</footer>
+
+
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-27980065-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+</body>
+</html>

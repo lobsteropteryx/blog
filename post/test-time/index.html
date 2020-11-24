@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<title>Test Time&middot; Notes from the Lifeboat</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author" content="Ian Firkin">
+	<meta name="description" content="Dim interlocutions">
+	
+	<meta name="generator" content="Hugo 0.42" />
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/main.css">
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/syntax.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="https://notesfromthelifeboat.com/favicon.ico" type="image/x-icon">
+
+	<!-- RSS -->
+	
+
+	<!-- Font Awesome -->
+	<link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/default.min.css">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+	<header class="site-header">
+	<div class="branding">
+		<a href="https://notesfromthelifeboat.com/">
+		<img class="avatar" src="https://notesfromthelifeboat.com/img/avatar.png" alt=""/>
+		</a>
+		<h1 class="site-title">
+			<a href="https://notesfromthelifeboat.com/">Notes from the Lifeboat</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+			<li><a href="/about/"> About </a></li>
+
+			<li class="icon">
+	<a href="https://notesfromthelifeboat.com/" title="">
+		<i class="fa fa-fw fa-home"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="https://notesfromthelifeboat.com/index.xml" title="Subcribe">
+		<i class="fa fa-fw fa-rss"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="mailto:ian.firkin@gmail.com" title="Email">
+		<i class="fa fa-fw fa-envelope"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://github.com/lobsteropteryx" title="GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://twitter.com/lobsteropteryx" title="Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+
+	<div class="content">
+	<article>
+		<header>
+			<h1 class="title">Test Time</h1>
+			<p class="meta">
+	July 29, 2017 &middot; 4 minute read
+
+	
+</p>
+
+		</header>
+
+		<section class="post-content">
+			<p>I&rsquo;ve spent a good deal of time helping teams adopt automated testing as a part of their workflow; one thing that I&rsquo;ve often heard from folks who aren&rsquo;t familiar with the methodology is the following:</p>
+
+<blockquote>
+<p>&ldquo;How much time do you estimate for writing unit tests?&rdquo;</p>
+</blockquote>
+
+<p>Usually what people are looking for is something like, &ldquo;I need X hours for the production code, and Y hours for writing tests for this feature.&rdquo;  If you&rsquo;re familiar with automated testing (and especially TDD), you probably recognize that this is the wrong way to look at it; I&rsquo;ve struggled with explaining this in the past, but I recently came a across a real example that might be instructive.</p>
+
+<p>We found a bug in some production code that was using a list component; when removing an item from the list, the <code>value</code> argument passed to the event handler was null, but we were looking for <code>value.id</code>.  In addition, the POST body for our API call expected the properties to be defined even if they weren&rsquo;t set, and to have a default value of <code>-1</code>.</p>
+
+<p>The total time to discover, log, reproduce and find the root cause of this bug was on the order of a few <strong>hours</strong>.</p>
+
+<p>The <strong>production</strong> code to fix the bug looked like this:</p>
+<div class="highlight"><pre class="chroma"><code class="language-javascript" data-lang="javascript"><span class="kr">static</span> <span class="nx">getCategoryValue</span><span class="p">(</span><span class="nx">val</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">let</span> <span class="nx">category</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">val</span> <span class="o">&amp;&amp;</span> <span class="nx">val</span><span class="p">.</span><span class="nx">id</span> <span class="o">!==</span> <span class="kc">undefined</span> <span class="o">&amp;&amp;</span> <span class="nx">val</span><span class="p">.</span><span class="nx">id</span> <span class="o">!==</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nx">category</span> <span class="o">=</span> <span class="nx">val</span><span class="p">.</span><span class="nx">id</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="nx">category</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>The total time to write that function was on the order of a few <strong>minutes</strong>.</p>
+
+<p>The <strong>test</strong> code to check the behavior looked like this:</p>
+<div class="highlight"><pre class="chroma"><code class="language-javascript" data-lang="javascript">  <span class="nx">describe</span><span class="p">(</span><span class="s1">&#39;Category values&#39;</span><span class="p">,</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="p">{</span>
+    <span class="nx">it</span><span class="p">(</span><span class="s1">&#39;Returns -1 if the value is null&#39;</span><span class="p">,</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="p">{</span>
+      <span class="nx">expect</span><span class="p">(</span><span class="nx">PoiForm</span><span class="p">.</span><span class="nx">getCategoryValue</span><span class="p">(</span><span class="kc">null</span><span class="p">)).</span><span class="nx">to</span><span class="p">.</span><span class="nx">equal</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+    <span class="p">});</span>
+
+    <span class="nx">it</span><span class="p">(</span><span class="s1">&#39;Returns -1 if the value is undefined&#39;</span><span class="p">,</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="p">{</span>
+      <span class="nx">expect</span><span class="p">(</span><span class="nx">PoiForm</span><span class="p">.</span><span class="nx">getCategoryValue</span><span class="p">()).</span><span class="nx">to</span><span class="p">.</span><span class="nx">equal</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+    <span class="p">});</span>
+
+    <span class="nx">it</span><span class="p">(</span><span class="s1">&#39;Returns -1 if the id is null&#39;</span><span class="p">,</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="p">{</span>
+      <span class="k">const</span> <span class="nx">val</span> <span class="o">=</span> <span class="p">{</span><span class="nx">id</span><span class="o">:</span> <span class="kc">null</span><span class="p">};</span>
+      <span class="nx">expect</span><span class="p">(</span><span class="nx">PoiForm</span><span class="p">.</span><span class="nx">getCategoryValue</span><span class="p">(</span><span class="nx">val</span><span class="p">)).</span><span class="nx">to</span><span class="p">.</span><span class="nx">equal</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+    <span class="p">});</span>
+
+    <span class="nx">it</span><span class="p">(</span><span class="s1">&#39;Returns -1 if the id is undefined&#39;</span><span class="p">,</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="p">{</span>
+      <span class="k">const</span> <span class="nx">val</span> <span class="o">=</span> <span class="p">{};</span>
+      <span class="nx">expect</span><span class="p">(</span><span class="nx">PoiForm</span><span class="p">.</span><span class="nx">getCategoryValue</span><span class="p">(</span><span class="nx">val</span><span class="p">)).</span><span class="nx">to</span><span class="p">.</span><span class="nx">equal</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">);</span>
+    <span class="p">});</span>
+
+    <span class="nx">it</span><span class="p">(</span><span class="s1">&#39;Returns the id if it is 0&#39;</span><span class="p">,</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="p">{</span>
+      <span class="k">const</span> <span class="nx">val</span> <span class="o">=</span> <span class="p">{</span><span class="nx">id</span><span class="o">:</span> <span class="mi">0</span><span class="p">};</span>
+      <span class="nx">expect</span><span class="p">(</span><span class="nx">PoiForm</span><span class="p">.</span><span class="nx">getCategoryValue</span><span class="p">(</span><span class="nx">val</span><span class="p">)).</span><span class="nx">to</span><span class="p">.</span><span class="nx">equal</span><span class="p">(</span><span class="mi">0</span><span class="p">);</span>
+    <span class="p">});</span>
+
+    <span class="nx">it</span><span class="p">(</span><span class="s1">&#39;Returns the id if it is 1&#39;</span><span class="p">,</span> <span class="p">()</span> <span class="p">=&gt;</span> <span class="p">{</span>
+      <span class="k">const</span> <span class="nx">val</span> <span class="o">=</span> <span class="p">{</span><span class="nx">id</span><span class="o">:</span> <span class="mi">1</span><span class="p">};</span>
+      <span class="nx">expect</span><span class="p">(</span><span class="nx">PoiForm</span><span class="p">.</span><span class="nx">getCategoryValue</span><span class="p">(</span><span class="nx">val</span><span class="p">)).</span><span class="nx">to</span><span class="p">.</span><span class="nx">equal</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+    <span class="p">});</span>
+  <span class="p">})</span>
+</code></pre></div>
+<p>The total time to write the above tests was on the order of a few <strong>seconds</strong>.</p>
+
+<p>Obviously these are order of magnitude estimates&ndash;your mileage may vary.  The point is, the test logic is very simple and quick to write, while the time lost by an uncaught bug is very large&ndash;there&rsquo;s a lot of time and effort spent before we even touch the code.  Then we have the build and deploy process, promoting through environments, and the time of our users&ndash;they could be losing entire days of productivity.  An automated test suite will catch bugs before the code even leaves the developer&rsquo;s workstation, and <em>keep</em> catching them in future&ndash;too often, all of these things are left out of the accounting.</p>
+
+<p>As a general rule, it doesn&rsquo;t make sense to compare tests and production methods by lines of code, nor to estimate them separately.  Ideally we&rsquo;ll be writing the tests and production code together, using TDD&ndash;that&rsquo;s the goal.  Adding a separate line item or estimate for unit testing is backwards, and moves us in the opposite direction.</p>
+
+<p>If you&rsquo;re asked to estimate the time you spend writing tests, take a step back and try to reframe the conversation&ndash;when you&rsquo;re scoping a piece of work, you really want to be talking in terms of features and defects, rather than specific technical tasks&ndash;business language, not technical jargon.  Tests are a tool we use to help ensure the features that we build work; trying to split test writing out into a separate task implies that it&rsquo;s something that could be cut, and that&rsquo;s a false premise&ndash;the only tradeoff is spending a lot more time fixing broken features, which affects the developers, the customer, and the end users.</p>
+
+
+			
+				<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "notesfromthelifeboat" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+			
+		</section>
+	</article>
+	</div>
+
+	<footer class="site-footer">
+	<p class="text">&copy; 2020 - Released under the MIT license<br>Powered by <a href="//gohugo.io/">Hugo</a> with the <a href="//github.com/digitalcraftsman/hugo-type-theme">Type Theme</a></p>
+</footer>
+
+
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-27980065-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<title>Homework&middot; Notes from the Lifeboat</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author" content="Ian Firkin">
+	<meta name="description" content="Dim interlocutions">
+	
+	<meta name="generator" content="Hugo 0.42" />
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/main.css">
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/syntax.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="https://notesfromthelifeboat.com/favicon.ico" type="image/x-icon">
+
+	<!-- RSS -->
+	
+
+	<!-- Font Awesome -->
+	<link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/default.min.css">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+	<header class="site-header">
+	<div class="branding">
+		<a href="https://notesfromthelifeboat.com/">
+		<img class="avatar" src="https://notesfromthelifeboat.com/img/avatar.png" alt=""/>
+		</a>
+		<h1 class="site-title">
+			<a href="https://notesfromthelifeboat.com/">Notes from the Lifeboat</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+			<li><a href="/about/"> About </a></li>
+
+			<li class="icon">
+	<a href="https://notesfromthelifeboat.com/" title="">
+		<i class="fa fa-fw fa-home"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="https://notesfromthelifeboat.com/index.xml" title="Subcribe">
+		<i class="fa fa-fw fa-rss"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="mailto:ian.firkin@gmail.com" title="Email">
+		<i class="fa fa-fw fa-envelope"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://github.com/lobsteropteryx" title="GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://twitter.com/lobsteropteryx" title="Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+
+	<div class="content">
+	<article>
+		<header>
+			<h1 class="title">Homework</h1>
+			<p class="meta">
+	October 10, 2013 &middot; 3 minute read
+
+	
+</p>
+
+		</header>
+
+		<section class="post-content">
+			<p>The other day I was called upon to help a 5th grader with her homework.  She had gotten the first two problems right, but was having some difficulty with the third one:</p>
+
+<p><img src="/images/homework.gif" alt="" /></p>
+
+<p>I can&rsquo;t help but wonder who chose that problem, and what their intention was; if it&rsquo;s supposed to be a way to get kids thinking about algorithms and the idea of proof, that&rsquo;s great.  Probably most kids would start off okay&ndash;you find all the paths and pick the shortest one.  But how do you know there&rsquo;s not a shorter one, that you didn&rsquo;t find?  Can you even expect to find all the possible paths?  I think it&rsquo;s probably intuitive that the number of paths might increase faster than the number of nodes, but how much faster?  And what about cycles?</p>
+
+<p>And maybe there are geometric solutions&ndash;if you drew a line between the start and end points, are there any generalizations you can make about the paths (i.e., paths that intersect the line versus those that don&rsquo;t)?  Could you work it out with a compass?  But the segments on the paper weren&rsquo;t even drawn to scale, so compass-work was out of the question.  In the end, maybe someone just thought that it was a nice way to make a kid add up a bunch of numbers&ndash;&ldquo;oh, it&rsquo;s like, four addition problems in one!&rdquo;</p>
+
+<p>That&rsquo;s all probably a bit much for a 5th grader, and this one was certainly not interested in my flights of fancy&ndash;what she wanted to know was, did she get the right answer?  When I told her that I didn&rsquo;t know, she thought I was making fun of her, but when I told her that I was pretty sure that her teacher didn&rsquo;t know the answer either, she started to wonder.  I mentioned that, in my opinion, it was a very hard problem for a fifth grader, but that while I didn&rsquo;t <i>know</i> the answer, I knew how to <i>find</i> it.  (That spun off into another conversation entirely, about the nature of education; I might write something on that topic another day).</p>
+
+<p>I thought that this would make a pretty good programming <a href='http://codekata.pragprog.com/'>kata</a>, so I went to work.  I was at least passingly familiar with <a href='http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm'>Dijkstra&rsquo;s algorithm</a>, but I decided to see if I could iterate my way to a solution without looking it up.  I started out trying to represent the nodes and segments, and then figured that I wanted something recursive, to keep comparing new segments at each new node.  I went on this way for a while, but the results weren&rsquo;t very promising, partially because I&rsquo;m a TDD novice, and partially because I&rsquo;m just bad; in the end I gave up, and looked up the algorithm (See&ndash;bad).</p>
+
+<p>But I&rsquo;m not sure that iteration is always the best solution to this type of problem; I think it has a place, particularly if you&rsquo;re implementing a known algorithm (my <a href='https://github.com/lobsteropteryx/GardenClub'>implementation</a> is probably full of bugs), but for solving a new problem, I&rsquo;d probably want to go to pencil and paper first.  In any case, that topic has already been <a href='http://ravimohan.blogspot.com/2007/04/learning-from-sudoku-solvers.html'>discussed</a> plenty, by smarter people than me.  I do wonder what <a href='http://www.cs.utexas.edu/users/EWD/transcriptions/EWD04xx/EWD498.html'>Dijkstra himself</a> would have to say about it, though.</p>
+
+
+			
+				<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "notesfromthelifeboat" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+			
+		</section>
+	</article>
+	</div>
+
+	<footer class="site-footer">
+	<p class="text">&copy; 2020 - Released under the MIT license<br>Powered by <a href="//gohugo.io/">Hugo</a> with the <a href="//github.com/digitalcraftsman/hugo-type-theme">Type Theme</a></p>
+</footer>
+
+
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-27980065-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+</body>
+</html>

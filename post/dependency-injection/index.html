@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<title>Dependency Injection&middot; Notes from the Lifeboat</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author" content="Ian Firkin">
+	<meta name="description" content="Dim interlocutions">
+	
+	<meta name="generator" content="Hugo 0.42" />
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/main.css">
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/syntax.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="https://notesfromthelifeboat.com/favicon.ico" type="image/x-icon">
+
+	<!-- RSS -->
+	
+
+	<!-- Font Awesome -->
+	<link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/default.min.css">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+	<header class="site-header">
+	<div class="branding">
+		<a href="https://notesfromthelifeboat.com/">
+		<img class="avatar" src="https://notesfromthelifeboat.com/img/avatar.png" alt=""/>
+		</a>
+		<h1 class="site-title">
+			<a href="https://notesfromthelifeboat.com/">Notes from the Lifeboat</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+			<li><a href="/about/"> About </a></li>
+
+			<li class="icon">
+	<a href="https://notesfromthelifeboat.com/" title="">
+		<i class="fa fa-fw fa-home"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="https://notesfromthelifeboat.com/index.xml" title="Subcribe">
+		<i class="fa fa-fw fa-rss"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="mailto:ian.firkin@gmail.com" title="Email">
+		<i class="fa fa-fw fa-envelope"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://github.com/lobsteropteryx" title="GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://twitter.com/lobsteropteryx" title="Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+
+	<div class="content">
+	<article>
+		<header>
+			<h1 class="title">Dependency Injection</h1>
+			<p class="meta">
+	June 13, 2013 &middot; 5 minute read
+
+	
+</p>
+
+		</header>
+
+		<section class="post-content">
+			<p>My car broke down the other night; I had dinner with a friend, and left the restaurant to find that my car wouldn&rsquo;t start.  I ran back around the building, just in time to see my buddy driving off.  Chased him five or six blocks, across the street, up a hill.  When I got to the top, he was gone.  Walked back to the parking lot, flagged down a helpful passer-by, and tried a jump-start; nothing.  I found myself sitting in a  parking lot in a small town around midnight, forty miles from home, alone.</p>
+
+<p>Did I mention, that I didn&rsquo;t have my cell phone with me?</p>
+
+<p>Not only that, but I realized, sitting there racking my brain, that I didn&rsquo;t even <i>know</i> any phone numbers.  My best friend, who had just driven off?  Nope.  My girlfriend?  No!  Without that Contacts list, I was lost.</p>
+
+<p>I decided that the best thing to do, would be to find a hotel.  I could use their computer in the morning to get in touch with someone, and I had plenty of tools in the trunk, so I was confident that I could fix the problem with my car.  I started walking.</p>
+
+<p>Like most places, the hotels were clustered around the single interstate exit, three or four miles away.  That&rsquo;s a long walk, in the middle of the night, but it gives you time to think.  I was moving slowly, silently&ndash;very consciously without an automobile, without a telephone.   And I noticed how much infrastructure is built around those things.  I passed car dealerships, gas stations; three auto parts stores, five cell phone shops.  “Passed” takes on a very different meaning when you’re on foot, and you start to notice all the things you depend on.</p>
+
+<p>I like to think that I’m reasonably well-prepared; I keep supplies at the house, in the car; I have a trunk full of tools; it’s <a href='http://en.wikipedia.org/wiki/Everyday_carry'>something I think about.</a>  And yet, there I was, hoofing it, by myself.  I vowed to start memorizing phone numbers, and dialing them in manually.</p>
+
+<p>&hellip;</p>
+
+<p>I have childhood memories of riding with one parent to pick up the other from work (we only had the one car), and the standing rule for phone calls to a third grade friend who lived four miles away:  Three minutes, no longer (it was a long distance call).  Those things seem archaic, now; stories from another time.  And I suppose that they are.  In most parts of the U.S., an automobile has been considered a necessity for a long time.  Cell phones and internet access are almost there,  if they’re not already.</p>
+
+<p>I started wondering, how much does that cost?  My car is payed off, I drive less than ten miles to work each day, and I get around 40 miles to the gallon.  I have the cheapest cell plan I can get from my carrier&ndash;no smartphone, no data.  I have high-speed internet, but no TV.  I’m still spending about 5% of my take-home pay on transportation, and another 5% on phone and internet.</p>
+
+<p>I’m not sure if that’s a big number; one Washington out of every Jackson, one working day out of every month?  It sort of seems like a lot&ndash;my rent comes in at around 20%.  On the other hand, I&rsquo;m apparently better off than <a href='http://politicalcalculations.blogspot.com/2012/09/whats-your-income-percentile.html#.Ucnk0H2Ex2N'>something like 75% of people in the U.S.,</a> so maybe those numbers are actually on the low end.</p>
+
+<p>This isn&rsquo;t supposed to be a Luddite rant; transportation and communication are obviously really important&ndash;look at military practice and history.  And it&rsquo;s not about people living above their means; for a lot of people, mobility and networking directly result in higher paying jobs.  The interesting question is, when do things go from being luxuries, to being necessities?  I don&rsquo;t think that many people would argue against having running water, or indoor toilets, or telephones, but we do pay for those things, and we don&rsquo;t <i>need</i> them, in the strictest sense.  I’m not sure you can even draw a line, without having the context.  But it does seem like we&rsquo;re well past the &ldquo;food, water, shelter&rdquo; phase of things.  I go back and forth on whether that&rsquo;s a good thing or not, but I don&rsquo;t  think it&rsquo;s a <a href='http://dilbert.com/blog/entry/exobrain/'>new phenomenon.</a>  The trick, I suppose, is striking the right balance.</p>
+
+<p>The idea of being self-sufficient is very appealing, at least to me; owning a house, free and clear, on a <a href='http://www.amazon.com/Living-Few-Acres-Jack-Hayes/dp/1589633350'>few acres</a>, is the goal.  I don’t think I’m alone in that&ndash;gardening, preserving, raising chickens, living off the grid, these are still very popular ideas.  And I think that the “local” movement is, at least in part, about that; a lot of people are really concerned with food, water, and energy independence, on a person level.</p>
+
+<p>But you can go too far that way; I think community is really, intrinsically important.  It’s easy to think that you could just live by yourself, and be 100% self-sufficient, but I think people tend to underestimate how difficult that really is.  Without anyone else around, if I break my leg, I’m probably going to starve to death.  If nothing else, a community gives you insurance against random accidents.</p>
+
+<p>It’s really easy to lose track of exactly what you depend on in your everyday life, but once in a while something breaks, and reminds you of some critical connection that you’ve forgotten about.  Some of those connections feel okay, and very natural, but other parts feel fragile, and almost scary&ndash;it’s good to take an inventory sometimes, and see what you can do to change the fragile bits. It might be over-optimistic, but I tend to think that you can take the good parts and leave the bad; that there is room for both cell phones and small farms.</p>
+
+
+			
+				<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "notesfromthelifeboat" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+			
+		</section>
+	</article>
+	</div>
+
+	<footer class="site-footer">
+	<p class="text">&copy; 2020 - Released under the MIT license<br>Powered by <a href="//gohugo.io/">Hugo</a> with the <a href="//github.com/digitalcraftsman/hugo-type-theme">Type Theme</a></p>
+</footer>
+
+
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-27980065-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+</body>
+</html>

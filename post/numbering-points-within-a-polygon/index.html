@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<title>Numbering Points within a Polygon&middot; Notes from the Lifeboat</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author" content="Ian Firkin">
+	<meta name="description" content="Dim interlocutions">
+	
+	<meta name="generator" content="Hugo 0.42" />
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/main.css">
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/syntax.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="https://notesfromthelifeboat.com/favicon.ico" type="image/x-icon">
+
+	<!-- RSS -->
+	
+
+	<!-- Font Awesome -->
+	<link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/default.min.css">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+	<header class="site-header">
+	<div class="branding">
+		<a href="https://notesfromthelifeboat.com/">
+		<img class="avatar" src="https://notesfromthelifeboat.com/img/avatar.png" alt=""/>
+		</a>
+		<h1 class="site-title">
+			<a href="https://notesfromthelifeboat.com/">Notes from the Lifeboat</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+			<li><a href="/about/"> About </a></li>
+
+			<li class="icon">
+	<a href="https://notesfromthelifeboat.com/" title="">
+		<i class="fa fa-fw fa-home"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="https://notesfromthelifeboat.com/index.xml" title="Subcribe">
+		<i class="fa fa-fw fa-rss"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="mailto:ian.firkin@gmail.com" title="Email">
+		<i class="fa fa-fw fa-envelope"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://github.com/lobsteropteryx" title="GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://twitter.com/lobsteropteryx" title="Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+
+	<div class="content">
+	<article>
+		<header>
+			<h1 class="title">Numbering Points within a Polygon</h1>
+			<p class="meta">
+	September 30, 2013 &middot; 2 minute read
+
+	
+</p>
+
+		</header>
+
+		<section class="post-content">
+			<p>This is the sort of thing that seems really easy in hindsight, but it took me a little while to get right.</p>
+
+<p>There are lots of things that I don&rsquo;t like about PL/SQL, but I often prefer to do spatial operations at the table level inside the database, rather than using ArcPy or ArcObjects; I think that it&rsquo;s easier to reuse queries like this, the code tends to be more readable and concise, and performance is almost always significantly better.</p>
+
+<p>In this case, we had  a set of polygons (&ldquo;PPAs&rdquo;) that needed to be assigned a value based on the county they fell in, as well as being uniquely numbered within that county.</p>
+<div class="highlight"><pre class="chroma"><code class="language-sql" data-lang="sql">        <span class="k">select</span> <span class="cm">/*+ ordered use_nl (t,c) use_nl (t,p) */</span>
+        <span class="n">objectid</span><span class="p">,</span>
+        <span class="k">state</span><span class="p">,</span>
+        <span class="n">county_name</span> <span class="n">county</span><span class="p">,</span>
+        <span class="n">region</span><span class="p">,</span>
+        <span class="n">row_number</span><span class="p">()</span> <span class="n">over</span> <span class="p">(</span><span class="n">partition</span> <span class="k">by</span> <span class="n">region</span><span class="p">,</span> <span class="k">state</span><span class="p">,</span> <span class="n">county_name</span>
+        <span class="k">order</span> <span class="k">by</span> <span class="n">region</span><span class="p">,</span> <span class="k">state</span><span class="p">,</span> <span class="n">county_name</span><span class="p">,</span>
+        <span class="n">sdo_geom</span><span class="p">.</span><span class="n">sdo_centroid</span><span class="p">(</span><span class="n">p</span><span class="p">.</span><span class="n">shape</span><span class="p">,</span> <span class="mi">0</span><span class="p">.</span><span class="mi">005</span><span class="p">).</span><span class="n">sdo_point</span><span class="p">.</span><span class="n">x</span><span class="p">,</span>
+        <span class="n">sdo_geom</span><span class="p">.</span><span class="n">sdo_centroid</span><span class="p">(</span><span class="n">p</span><span class="p">.</span><span class="n">shape</span><span class="p">,</span> <span class="mi">0</span><span class="p">.</span><span class="mi">005</span><span class="p">).</span><span class="n">sdo_point</span><span class="p">.</span><span class="n">y</span><span class="p">)</span> <span class="k">as</span> <span class="n">rnum</span>
+        <span class="k">from</span>
+        <span class="p">(</span>
+          <span class="k">select</span> <span class="n">p</span><span class="p">.</span><span class="n">objectid</span><span class="p">,</span> <span class="n">p</span><span class="p">.</span><span class="n">traps</span><span class="p">,</span> <span class="k">c</span><span class="p">.</span><span class="k">state</span><span class="p">,</span> <span class="k">c</span><span class="p">.</span><span class="n">county_name</span><span class="p">,</span> <span class="n">p</span><span class="p">.</span><span class="n">region</span><span class="p">,</span> <span class="n">sdo_geom</span><span class="p">.</span><span class="n">sdo_centroid</span><span class="p">(</span><span class="n">p</span><span class="p">.</span><span class="n">shape</span><span class="p">,</span> <span class="mi">0</span><span class="p">.</span><span class="mi">005</span><span class="p">)</span> <span class="k">as</span> <span class="n">shape</span>
+          <span class="k">from</span> <span class="k">table</span><span class="p">(</span><span class="n">sdo_join</span><span class="p">(</span><span class="s1">&#39;PPAS&#39;</span><span class="p">,</span><span class="s1">&#39;SHAPE&#39;</span><span class="p">,</span><span class="s1">&#39;COUNTIES&#39;</span><span class="p">,</span><span class="s1">&#39;SHAPE&#39;</span><span class="p">))</span> <span class="n">t</span><span class="p">,</span>
+            <span class="n">ppas</span> <span class="n">p</span><span class="p">,</span>
+            <span class="n">counties</span> <span class="k">c</span>
+          <span class="k">where</span> <span class="n">t</span><span class="p">.</span><span class="n">rowid1</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="n">rowid</span>
+          <span class="k">and</span> <span class="n">t</span><span class="p">.</span><span class="n">rowid2</span> <span class="o">=</span> <span class="k">c</span><span class="p">.</span><span class="n">rowid</span>
+          <span class="k">and</span> <span class="k">c</span><span class="p">.</span><span class="k">state</span> <span class="o">=</span> <span class="n">p</span><span class="p">.</span><span class="k">state</span>
+          <span class="k">and</span> <span class="n">sdo_geom</span><span class="p">.</span><span class="n">relate</span><span class="p">(</span><span class="k">c</span><span class="p">.</span><span class="n">shape</span><span class="p">,</span> <span class="s1">&#39;anyinteract&#39;</span><span class="p">,</span> <span class="n">sdo_geom</span><span class="p">.</span><span class="n">sdo_centroid</span><span class="p">(</span><span class="n">p</span><span class="p">.</span><span class="n">shape</span><span class="p">,</span> <span class="mi">0</span><span class="p">.</span><span class="mi">005</span><span class="p">),</span> <span class="mi">0</span><span class="p">.</span><span class="mi">005</span><span class="p">)</span> <span class="o">=</span> <span class="s1">&#39;TRUE&#39;</span>
+        <span class="p">)</span> <span class="n">p</span>
+        <span class="k">order</span> <span class="k">by</span> <span class="k">state</span><span class="p">,</span> <span class="n">county_name</span><span class="p">,</span> <span class="n">rnum</span></code></pre></div>
+<p>Ordering by the centroid X and Y values in the partition clause is important; without that, the polygons don&rsquo;t get numbered in a deterministic way.  In this case, the polygons were generated daily by a decision support system, and without ordering the blocks spatially, the numbers within each county would be swapped around each day.</p>
+
+
+			
+				<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "notesfromthelifeboat" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+			
+		</section>
+	</article>
+	</div>
+
+	<footer class="site-footer">
+	<p class="text">&copy; 2020 - Released under the MIT license<br>Powered by <a href="//gohugo.io/">Hugo</a> with the <a href="//github.com/digitalcraftsman/hugo-type-theme">Type Theme</a></p>
+</footer>
+
+
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-27980065-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+</body>
+</html>

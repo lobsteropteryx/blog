@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<title>Protecting Secrets in SaltStack Configuration&middot; Notes from the Lifeboat</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author" content="Ian Firkin">
+	<meta name="description" content="Dim interlocutions">
+	
+	<meta name="generator" content="Hugo 0.42" />
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/main.css">
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/syntax.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="https://notesfromthelifeboat.com/favicon.ico" type="image/x-icon">
+
+	<!-- RSS -->
+	
+
+	<!-- Font Awesome -->
+	<link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/default.min.css">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+	<header class="site-header">
+	<div class="branding">
+		<a href="https://notesfromthelifeboat.com/">
+		<img class="avatar" src="https://notesfromthelifeboat.com/img/avatar.png" alt=""/>
+		</a>
+		<h1 class="site-title">
+			<a href="https://notesfromthelifeboat.com/">Notes from the Lifeboat</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+			<li><a href="/about/"> About </a></li>
+
+			<li class="icon">
+	<a href="https://notesfromthelifeboat.com/" title="">
+		<i class="fa fa-fw fa-home"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="https://notesfromthelifeboat.com/index.xml" title="Subcribe">
+		<i class="fa fa-fw fa-rss"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="mailto:ian.firkin@gmail.com" title="Email">
+		<i class="fa fa-fw fa-envelope"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://github.com/lobsteropteryx" title="GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://twitter.com/lobsteropteryx" title="Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+
+	<div class="content">
+	<article>
+		<header>
+			<h1 class="title">Protecting Secrets in SaltStack Configuration</h1>
+			<p class="meta">
+	February 7, 2018 &middot; 4 minute read
+
+	
+</p>
+
+		</header>
+
+		<section class="post-content">
+			
+
+<p>I came across a situation recently where secrets were being leaked via <a href="https://docs.saltstack.com/en/latest/">SaltStack</a> deployments, run from a CI job.  I&rsquo;ll explain how this can happen, and give some suggestions to reduce the risk.</p>
+
+<p>A common workflow in SaltStack is to store secrets in a <a href="https://docs.saltstack.com/en/latest/topics/tutorials/pillar.html">pillar</a> on the salt master, which allows data to be <a href="https://docs.saltstack.com/en/latest/topics/pillar/index.html#pillar-encryption">encrypted</a> until compilation.  The <a href="https://docs.saltstack.com/en/latest/ref/states/all/salt.states.file.html#salt.states.file.managed"><code>file.managed</code></a> module can then be used to templatize configuration files and inject secrets from the encrypted pillars.</p>
+
+<p>The problem appears when the file templates are changed within the salt state; by default, <code>file.managed</code> will display a diff of the file changes, and any secrets that would be injected into the file will be shown in cleartext in the diff.</p>
+
+<h2 id="example">Example</h2>
+
+<p>Suppose we have a salt pillar that contains an encrypted password (the plaintext is <code>my57r0nkP455w0rd!</code>):</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">app<span class="p">:</span><span class="w">
+</span><span class="w">    </span>password<span class="p">:</span><span class="w"> </span><span class="sd">|
+</span><span class="sd">        -----BEGIN PGP MESSAGE-----
+</span><span class="sd">            Version: GnuPG v1
+</span><span class="sd">
+</span><span class="sd">            hQEMA/yXXF3hJbt6AQf+JCGag2mOyVmIi7QNRF2eagUtktot8sujCDVTCOTJe6tM
+</span><span class="sd">            5+bxlJUaqK2iZA7sO6arMu8myZTor9A0gDf+s+ij/S4LAURR4CT2OX/wI3gpnQw0
+</span><span class="sd">            oJt2bztbcl7ZqsRM1DP943Rx5XPOksCFvFR1ftzfF9zoohkpS9axx2WyQWnQqCs0
+</span><span class="sd">            x3QOr9RpBoMZU153N2YnG8ys5tskFQMHMaGGhXJSln8vDw9hodWTzO0OxS67Wp5L
+</span><span class="sd">            3fty7ruPZiJ/jeoKjC5BLPl0IFOJ0/ctRUF70OgEy72UozX7TD6sGghUwF16aDcc
+</span><span class="sd">            EZf9CUZHed8GMVOGAU5ZoDCFwSrF3ZGK6L8Ens6269JMARp2jf/+nI7/qCtVP+qy
+</span><span class="sd">            XGFur7xY/XkmMIhXcqeaBT6ZZojCMBgFOv0A2P7zFdl1uIFLeA+Uk/DfZhQLNxa/
+</span><span class="sd">            7y96iQXPL4CZVXUuAw==
+</span><span class="sd">            =bIm3
+</span><span class="sd">            -----END PGP MESSAGE-----</span></code></pre></div>
+<p>We want our state to copy a simple, YAML config file onto the root of our target systems; the file template looks like this:</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">password<span class="p">:</span><span class="w"> </span>{{<span class="w"> </span>pillar<span class="p">[</span><span class="s1">&#39;app&#39;</span><span class="p">][</span><span class="s1">&#39;password&#39;</span><span class="p">]</span><span class="w"> </span>}}</code></pre></div>
+<p>And the corresponding salt state, <code>config-example</code> that looks like:</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">copy<span class="w"> </span>yaml<span class="w"> </span>config<span class="p">:</span><span class="w">
+</span><span class="w">    </span>file.managed<span class="p">:</span><span class="w">
+</span><span class="w">        </span>-<span class="w"> </span>name<span class="p">:</span><span class="w"> </span>/config.yml<span class="w">
+</span><span class="w">        </span>-<span class="w"> </span>source<span class="p">:</span><span class="w"> </span>salt<span class="p">:</span>//config-example/config.yml<span class="w">
+</span><span class="w">        </span>-<span class="w"> </span>template<span class="p">:</span><span class="w"> </span>jinja</code></pre></div>
+<p>When we apply the salt state, we get output like this:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ sudo salt <span class="s1">&#39;test-machine&#39;</span> state.apply config-example
+test-machine:
+----------
+          ID: copy yaml config
+    Function: file.managed
+        Name: /config.yml
+      Result: True
+     Comment: File /config.yml updated
+     Started: <span class="m">00</span>:57:23.942488
+    Duration: <span class="m">43</span>.845 ms
+     Changes:
+              ----------
+              diff:
+                  New file
+              mode:
+                  <span class="m">0644</span>
+
+Summary <span class="k">for</span> test-machine
+------------------------
+Succeeded: <span class="m">1</span> <span class="o">(</span><span class="nv">changed</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+Failed:    <span class="m">0</span>
+------------
+Total states run:     <span class="m">1</span>
+Total run time:  <span class="m">43</span>.845 ms</code></pre></div>
+<p>Now suppose we add another parameter to the config template:</p>
+<div class="highlight"><pre class="chroma"><code class="language-yaml" data-lang="yaml">password<span class="p">:</span><span class="w"> </span>{{<span class="w"> </span>pillar<span class="p">[</span><span class="s1">&#39;app&#39;</span><span class="p">][</span><span class="s1">&#39;password&#39;</span><span class="p">]</span><span class="w"> </span>}}<span class="w">
+</span><span class="w"></span>new_parameter<span class="p">:</span><span class="w"> </span><span class="kc">true</span></code></pre></div>
+<p>When we reapply the state, we see a diff (and our password!):</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ sudo salt <span class="s1">&#39;test-machine&#39;</span> state.apply config-example
+test-machine:
+----------
+          ID: copy yaml config
+    Function: file.managed
+        Name: /config.yml
+      Result: True
+     Comment: File /config.yml updated
+     Started: <span class="m">01</span>:09:38.271871
+    Duration: <span class="m">35</span>.597 ms
+     Changes:
+              ----------
+              diff:
+                  ---
+                  +++
+                  @@ -1 +1,2 @@
+                   password: my57r0nkP455w0rd!
+                  +new_parameter: <span class="nb">true</span>
+
+Summary <span class="k">for</span> test-machine
+------------------------
+Succeeded: <span class="m">1</span> <span class="o">(</span><span class="nv">changed</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+Failed:    <span class="m">0</span>
+------------
+Total states run:     <span class="m">1</span>
+Total run time:  <span class="m">35</span>.597 ms</code></pre></div>
+<p>Depending on how the salt state is applied, this output can end up any number of places; for example, when run from a Jenkins job the output above will land on filesystem of the build master, with the password in plain text.  Depending on how the retention policies for build logs are set, these credentials can accumulate over time.</p>
+
+<h2 id="solutions">Solutions</h2>
+
+<p>There are a couple of ways to address this issue&ndash;locally in <code>file</code> module itself, and globally in the salt configuration files.</p>
+
+<h3 id="local-settings">Local Settings</h3>
+
+<p>The <code>file.managed</code> function has a boolean parameter called <code>show_changes</code>; by default its value is <code>True</code>, but setting it to <code>False</code> prevents the diff from being displayed:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ sudo salt <span class="s1">&#39;test-machine&#39;</span> state.apply config-example
+test-machine:
+----------
+          ID: copy yaml config
+    Function: file.managed
+        Name: /config.yml
+      Result: True
+     Comment: File /config.yml updated
+     Started: <span class="m">01</span>:09:38.271871
+    Duration: <span class="m">35</span>.597 ms
+     Changes:
+              ----------
+              diff:
+                  &lt;<span class="nv">show_changes</span><span class="o">=</span>False&gt;
+
+Summary <span class="k">for</span> test-machine
+------------------------
+Succeeded: <span class="m">1</span> <span class="o">(</span><span class="nv">changed</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+Failed:    <span class="m">0</span>
+------------
+Total states run:     <span class="m">1</span>
+Total run time:  <span class="m">35</span>.597 ms</code></pre></div>
+<h3 id="global-settings">Global Settings</h3>
+
+<p>While it may be possible to enforce the use of the <code>show_changes</code> flag via git hooks or  similar, it&rsquo;s not always the best solution, and there may be many <code>file.managed</code> calls within a typical machine configuration.  Another way to control the output is via the <a href="https://docs.saltstack.com/en/latest/ref/configuration/master.html">configuration</a> of the salt master itself  There are a few settings that govern output verbosity, but <a href="https://docs.saltstack.com/en/latest/ref/configuration/master.html#state-output"><code>state_output</code></a> is the one we&rsquo;re interested in.</p>
+
+<p>If we set the <code>state_output</code> config value to <code>terse</code>, we&rsquo;ll get a simple success or failure message for our states, regardless of whether the <code>show_changes</code> flag is set on our state:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ sudo salt <span class="s1">&#39;test-machine&#39;</span> state.apply config-example
+test-machine:
+  Name: /config.yml - Function: file.managed - Result: Changed Started: - <span class="m">01</span>:41:00.549403 Duration: <span class="m">35</span>.582 ms
+
+Summary <span class="k">for</span> test-machine
+------------------------
+Succeeded: <span class="m">1</span> <span class="o">(</span><span class="nv">changed</span><span class="o">=</span><span class="m">1</span><span class="o">)</span>
+Failed:    <span class="m">0</span>
+------------
+Total states run:     <span class="m">1</span>
+Total run time:  <span class="m">35</span>.582 ms</code></pre></div>
+<p>If you need more verbose output while troubleshooting a salt state, you can always adjust the level at the command line, using <code>--state_output=full</code>.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>Even with gpg encryption, it&rsquo;s possible for plaintext secrets to wind up in the output of salt commands.  Pay attention to your output, and adjust your salt configuration to minimize exposure.</p>
+
+
+			
+				<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "notesfromthelifeboat" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+			
+		</section>
+	</article>
+	</div>
+
+	<footer class="site-footer">
+	<p class="text">&copy; 2020 - Released under the MIT license<br>Powered by <a href="//gohugo.io/">Hugo</a> with the <a href="//github.com/digitalcraftsman/hugo-type-theme">Type Theme</a></p>
+</footer>
+
+
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-27980065-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+</body>
+</html>

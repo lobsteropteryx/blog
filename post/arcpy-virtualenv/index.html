@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<title>Using Virtualenv with ArcPy&middot; Notes from the Lifeboat</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author" content="Ian Firkin">
+	<meta name="description" content="Dim interlocutions">
+	
+	<meta name="generator" content="Hugo 0.42" />
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/main.css">
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/syntax.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="https://notesfromthelifeboat.com/favicon.ico" type="image/x-icon">
+
+	<!-- RSS -->
+	
+
+	<!-- Font Awesome -->
+	<link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/default.min.css">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+	<header class="site-header">
+	<div class="branding">
+		<a href="https://notesfromthelifeboat.com/">
+		<img class="avatar" src="https://notesfromthelifeboat.com/img/avatar.png" alt=""/>
+		</a>
+		<h1 class="site-title">
+			<a href="https://notesfromthelifeboat.com/">Notes from the Lifeboat</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+			<li><a href="/about/"> About </a></li>
+
+			<li class="icon">
+	<a href="https://notesfromthelifeboat.com/" title="">
+		<i class="fa fa-fw fa-home"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="https://notesfromthelifeboat.com/index.xml" title="Subcribe">
+		<i class="fa fa-fw fa-rss"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="mailto:ian.firkin@gmail.com" title="Email">
+		<i class="fa fa-fw fa-envelope"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://github.com/lobsteropteryx" title="GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://twitter.com/lobsteropteryx" title="Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+
+	<div class="content">
+	<article>
+		<header>
+			<h1 class="title">Using Virtualenv with ArcPy</h1>
+			<p class="meta">
+	July 16, 2017 &middot; 3 minute read
+
+	
+</p>
+
+		</header>
+
+		<section class="post-content">
+			
+
+<p><a href="https://virtualenv.pypa.io/en/stable/">Virtualenv</a> allows you to create a repeatable, isolated environment for your project and its dependencies, without worrying about what packages and versions are installed globally on your development machine.  This is a standard tool for most python projects, but since arcpy is installed as a separate, global package, using virtual environments is a little more difficult.</p>
+
+<p>There are a couple of approaches to tackling this problem; either adding a <a href="https://my.usgs.gov/confluence/display/cdi/Calling+arcpy+from+an+external+virtual+Python+environment">.pth file</a> to the local virtualenv, or by using the <code>--system-site-packages</code> flag.  Both of these have some disadvantages&ndash;the first requires manual modification of the virtual environment and storing the <code>.pth</code> file separately, and the second brings in all the global dependencies into your virtual environment.</p>
+
+<p>A third possibility is to use the <a href="https://docs.python.org/2.7/library/site.html">site</a> module, which will allow us to selectively expose global packages to all of our virtual environments; this is the approach we&rsquo;ll take.</p>
+
+<h2 id="installing">Installing</h2>
+
+<p>Virtualenv is <a href="https://docs.python.org/3/library/venv.html">included</a> in the standard library at 3.3, but if you&rsquo;re still using python 2.7, you&rsquo;ll need to install it separately:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">pip install virtualenv</code></pre></div>
+<h2 id="customizing-site-packages">Customizing Site Packages</h2>
+
+<p>Since <code>arcpy</code> is installed globally and isn&rsquo;t available as an independent package, we need to allow access to it in our virtual environment.  We can do this by creating a <code>sitecustomize.py</code> file; this will allow us to specify a subset of the globally installed packages, and that subset will be included in every virtual environment we create.   At a minimum, we need arcpy and numpy, but you can add additional packages if you need to.</p>
+
+<p>First we&rsquo;ll create a directory to hold our subset; it doesn&rsquo;t matter where we put it or what its called, but for this example, it will be <code>C:/Python27/ArcGIS10.5/arcpy_includes</code>.</p>
+
+<p>We can add the required arcpy directories by copying the global <code>Desktop10.5.pth</code> file; this is just a list of directories for python to search, and it looks like this:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">C:<span class="se">\P</span>rogram Files <span class="o">(</span>x86<span class="o">)</span><span class="se">\A</span>rcGIS<span class="se">\D</span>esktop10.5<span class="se">\b</span>in
+C:<span class="se">\P</span>rogram Files <span class="o">(</span>x86<span class="o">)</span><span class="se">\A</span>rcGIS<span class="se">\D</span>esktop10.5<span class="se">\A</span>rcPy
+C:<span class="se">\P</span>rogram Files <span class="o">(</span>x86<span class="o">)</span><span class="se">\A</span>rcGIS<span class="se">\D</span>esktop10.5<span class="se">\A</span>rcToolBox<span class="se">\S</span>cripts</code></pre></div>
+<p>To handle numpy, we create a link (<code>mklink</code> from a windows <code>cmd</code> shell, <code>ln</code> from gitbash) to the global directory; putting it all together, it looks like this:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash"><span class="nb">cd</span> c:/Python27/ArcGIS10.5
+mkdir arcpy_includes
+<span class="nb">cd</span> arcpy_includes
+cp c:/Python27/ArcGIS10.5/Lib/site-packages/Desktop10.5.pth ./ 
+ln -s c:/Python27/ArcGIS10.5/Lib/site-packages/numpy numpy </code></pre></div>
+<p>Once this is done, our <code>arcpy_includes</code> directory should look like:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ ls
+Desktop10.5.pth  numpy/</code></pre></div>
+<p>Now we create a file called <code>sitecustomize.py</code>, in <code>C:/Python27/ArcGIS10.5/Lib</code> (note that the documentation recommends placing <code>sitecustomize.py</code> in the global <code>Lib/site-packages</code> directory, but virtualenv won&rsquo;t be able to find it there).  The contents of the file are short:</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">site</span>
+
+<span class="n">site</span><span class="o">.</span><span class="n">addsitedir</span><span class="p">(</span><span class="s1">&#39;c:/Python27/ArcGIS10.5/arcpy_includes&#39;</span><span class="p">)</span></code></pre></div>
+<p>And that&rsquo;s it&ndash;now arcpy and numpy will be included in every virtual environment we create.</p>
+
+<h2 id="using-the-virtual-environment">Using the Virtual Environment</h2>
+
+<p>To use the virtual environment in a project, just navigate to your project directory; the first time around, we need to create the virtual environment&ndash;by convention, we&rsquo;ll put in a local folder called <code>venv</code>.  We may also want to to tell <code>virtualenv</code> which version of python to use; it&rsquo;s often the case that we&rsquo;ll have multiple versions installed, especially if we&rsquo;ve upgraded ArcGIS.  We can do that using the <code>--python</code> flag:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">virtualenv --python C:/Python27/ArcGIS10.5/python.exe venv</code></pre></div>
+<p>Once the virtual environment is created, we activate it (from a <code>cmd</code> shell, you don&rsquo;t need the <code>source</code> command):</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash"><span class="nb">source</span> venv/Scripts/activate</code></pre></div>
+<p>Now any additional dependencies we install will only be installed to our local virtual environment, and not pollute the global site-packages.  To deactivate the environment, just do:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">deactivate</code></pre></div>
+
+			
+				<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "notesfromthelifeboat" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+			
+		</section>
+	</article>
+	</div>
+
+	<footer class="site-footer">
+	<p class="text">&copy; 2020 - Released under the MIT license<br>Powered by <a href="//gohugo.io/">Hugo</a> with the <a href="//github.com/digitalcraftsman/hugo-type-theme">Type Theme</a></p>
+</footer>
+
+
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-27980065-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+</body>
+</html>

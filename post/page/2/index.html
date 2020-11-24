@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<title>Posts&middot; Notes from the Lifeboat</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author" content="Ian Firkin">
+	<meta name="description" content="Dim interlocutions">
+	
+	<meta name="generator" content="Hugo 0.42" />
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/main.css">
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/syntax.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="https://notesfromthelifeboat.com/favicon.ico" type="image/x-icon">
+
+	<!-- RSS -->
+	<link href="https://notesfromthelifeboat.com/post/index.xml" rel="alternate" type="application/rss+xml" title="Notes from the Lifeboat" />
+		<link href="https://notesfromthelifeboat.com/post/index.xml" rel="feed" type="application/rss+xml" title="Notes from the Lifeboat" />
+
+	<!-- Font Awesome -->
+	<link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/default.min.css">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+	<header class="site-header">
+	<div class="branding">
+		<a href="https://notesfromthelifeboat.com/">
+		<img class="avatar" src="https://notesfromthelifeboat.com/img/avatar.png" alt=""/>
+		</a>
+		<h1 class="site-title">
+			<a href="https://notesfromthelifeboat.com/">Notes from the Lifeboat</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+			<li><a href="/about/"> About </a></li>
+
+			<li class="icon">
+	<a href="https://notesfromthelifeboat.com/" title="">
+		<i class="fa fa-fw fa-home"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="https://notesfromthelifeboat.com/index.xml" title="Subcribe">
+		<i class="fa fa-fw fa-rss"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="mailto:ian.firkin@gmail.com" title="Email">
+		<i class="fa fa-fw fa-envelope"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://github.com/lobsteropteryx" title="GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://twitter.com/lobsteropteryx" title="Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+
+	<div class="content">
+	<div class="posts">
+	
+	<div class="post-teaser">
+		<header>
+			<h1>
+			<a class="post-link" href="https://notesfromthelifeboat.com/post/testing_declarative_code/">
+				Testing Declarative Code
+			</a>
+			</h1>
+			<p class="meta">
+	December 17, 2017 &middot; 5 minute read
+
+	
+</p>
+
+		</header>
+
+		<div class="excerpt">
+			We&rsquo;ve had some interesting discussions on our team recently, about the level of testing required for some very declarative sections of our codebase. I&rsquo;ve been thinking about this subject a lot, especially after reading a recent post by Kent Beck.
+The fundamental problem we were trying to solve was this: We have a Python dictionary that represents an entity&ndash;in this case, a person. All of its values are strings:
+
+			<br>
+			<a class="button" href="https://notesfromthelifeboat.com/post/testing_declarative_code/">
+				Continue reading
+			</a>
+		</div>
+	</div><div class="post-teaser">
+		<header>
+			<h1>
+			<a class="post-link" href="https://notesfromthelifeboat.com/post/slap-gp/">
+				Publishing Geoprocessing Services with SLAP
+			</a>
+			</h1>
+			<p class="meta">
+	December 9, 2017 &middot; 3 minute read
+
+	
+</p>
+
+		</header>
+
+		<div class="excerpt">
+			I&rsquo;ve been working to add support in slap for publishing Geoprocessing (GP) services; the workflow outlined here will work with both Python Toolboxes as well as the older, binary .tbx file format.
+Similar to map services, it&rsquo;s possible to publish geoprocessing services as part of a docker build; all of the scripts, tools, and dockerfiles used in this example are available on github:
+ slap base docker images test image test data and scripts  Publishing from a Result File The createGPSDDraft method takes either a Result object or a path to a result (.
+
+			<br>
+			<a class="button" href="https://notesfromthelifeboat.com/post/slap-gp/">
+				Continue reading
+			</a>
+		</div>
+	</div><div class="post-teaser">
+		<header>
+			<h1>
+			<a class="post-link" href="https://notesfromthelifeboat.com/post/docker-publishing-docker-build/">
+				Publishing Map Services as Part of a Docker Build
+			</a>
+			</h1>
+			<p class="meta">
+	August 10, 2017 &middot; 6 minute read
+
+	
+</p>
+
+		</header>
+
+		<div class="excerpt">
+			A lot of smart people have worked to get ArcGIS Server (AGS) up and running in a docker container; it&rsquo;s a fast and convenient way to test applications that require an AGS instance to function.
+It&rsquo;s possible to streamline things even further by registering data and publishing services as part of the docker build process; this allows you to keep your infrastucture, data, and service definitions under source control, and use those to build an image with all the necessary services included.
+
+			<br>
+			<a class="button" href="https://notesfromthelifeboat.com/post/docker-publishing-docker-build/">
+				Continue reading
+			</a>
+		</div>
+	</div><div class="post-teaser">
+		<header>
+			<h1>
+			<a class="post-link" href="https://notesfromthelifeboat.com/post/test-time/">
+				Test Time
+			</a>
+			</h1>
+			<p class="meta">
+	July 29, 2017 &middot; 4 minute read
+
+	
+</p>
+
+		</header>
+
+		<div class="excerpt">
+			I&rsquo;ve spent a good deal of time helping teams adopt automated testing as a part of their workflow; one thing that I&rsquo;ve often heard from folks who aren&rsquo;t familiar with the methodology is the following:
+ &ldquo;How much time do you estimate for writing unit tests?&rdquo;
+ Usually what people are looking for is something like, &ldquo;I need X hours for the production code, and Y hours for writing tests for this feature.
+
+			<br>
+			<a class="button" href="https://notesfromthelifeboat.com/post/test-time/">
+				Continue reading
+			</a>
+		</div>
+	</div><div class="post-teaser">
+		<header>
+			<h1>
+			<a class="post-link" href="https://notesfromthelifeboat.com/post/python-project/">
+				Six Essentials for a Python Project
+			</a>
+			</h1>
+			<p class="meta">
+	July 23, 2017 &middot; 4 minute read
+
+	
+</p>
+
+		</header>
+
+		<div class="excerpt">
+			I&rsquo;ve seen a lot of GIS developers struggle to create a good project structure when building Python applications; often there&rsquo;s a transition from one enormous file with a single method to a &ldquo;real&rdquo; software project, with modular design, well defined dependencies, and the necessary tooling.
+The goal of this post is to be a summary and short checklist; these steps can improve almost any project, and are easy to implement.
+
+			<br>
+			<a class="button" href="https://notesfromthelifeboat.com/post/python-project/">
+				Continue reading
+			</a>
+		</div>
+	</div><div class="post-teaser">
+		<header>
+			<h1>
+			<a class="post-link" href="https://notesfromthelifeboat.com/post/arcpy-virtualenv/">
+				Using Virtualenv with ArcPy
+			</a>
+			</h1>
+			<p class="meta">
+	July 16, 2017 &middot; 3 minute read
+
+	
+</p>
+
+		</header>
+
+		<div class="excerpt">
+			Virtualenv allows you to create a repeatable, isolated environment for your project and its dependencies, without worrying about what packages and versions are installed globally on your development machine. This is a standard tool for most python projects, but since arcpy is installed as a separate, global package, using virtual environments is a little more difficult.
+There are a couple of approaches to tackling this problem; either adding a .
+
+			<br>
+			<a class="button" href="https://notesfromthelifeboat.com/post/arcpy-virtualenv/">
+				Continue reading
+			</a>
+		</div>
+	</div><div class="post-teaser">
+		<header>
+			<h1>
+			<a class="post-link" href="https://notesfromthelifeboat.com/post/testing-arcpy-2/">
+				Testing with ArcPy: Isolation and Mocking
+			</a>
+			</h1>
+			<p class="meta">
+	July 11, 2017 &middot; 8 minute read
+
+	
+</p>
+
+		</header>
+
+		<div class="excerpt">
+			Test fixtures can help us run our each of our tests against a clean set of known data, but arcpy can still throw a few curve balls at us&ndash;there are global singletons we need to be aware of (i.e., arcpy.env), and many GP tools can have side effects (such as changing the current working directory) or limitations of their own (i.e., the Project and Copy tools don&rsquo;t support in-memory workspaces).
+
+			<br>
+			<a class="button" href="https://notesfromthelifeboat.com/post/testing-arcpy-2/">
+				Continue reading
+			</a>
+		</div>
+	</div><div class="post-teaser">
+		<header>
+			<h1>
+			<a class="post-link" href="https://notesfromthelifeboat.com/post/testing-arcpy-1/">
+				Testing with ArcPy: Test Driving Geodatabase Changes Using Fixtures
+			</a>
+			</h1>
+			<p class="meta">
+	July 4, 2017 &middot; 6 minute read
+
+	
+</p>
+
+		</header>
+
+		<div class="excerpt">
+			Test Driven Development has been a major part of the discipline of software engineering for almost two decades; a Red-Green-Refactor cycle helps keep codebases maintainable, while lowering the risk of adding new features by protecting against regression and facilitating extensible designs.
+The design and history of arcpy and its related modules can make it difficult to test, and automation is not always given high priority in GIS projects. Nevertheless, there are techniques to help ease the process, and it&rsquo;s relatively easy to test drive the development of GIS software.
+
+			<br>
+			<a class="button" href="https://notesfromthelifeboat.com/post/testing-arcpy-1/">
+				Continue reading
+			</a>
+		</div>
+	</div><div class="post-teaser">
+		<header>
+			<h1>
+			<a class="post-link" href="https://notesfromthelifeboat.com/post/pipe-down/">
+				Pipe Down
+			</a>
+			</h1>
+			<p class="meta">
+	May 3, 2017 &middot; 2 minute read
+
+	
+</p>
+
+		</header>
+
+		<div class="excerpt">
+			As a full-time remote developer, it goes without saying that an internet connection is a requirement; every developer will be pushing and pulling from source control, chatting via slack, and performing hundreds thousands of package installs and/or stack overflow searches.
+I also spend a lot of time using some sort of screensharing tool&ndash;all of our production code is written in pairs over screenhero, and we do our daily standups, architecture discussions, and watercooler sessions over Google Hangouts.
+
+			<br>
+			<a class="button" href="https://notesfromthelifeboat.com/post/pipe-down/">
+				Continue reading
+			</a>
+		</div>
+	</div><div class="post-teaser">
+		<header>
+			<h1>
+			<a class="post-link" href="https://notesfromthelifeboat.com/post/tis/">
+				TIS
+			</a>
+			</h1>
+			<p class="meta">
+	January 10, 2017 &middot; 2 minute read
+
+	
+</p>
+
+		</header>
+
+		<div class="excerpt">
+			Look at any modern application, ETL process, or data analysis, and you&rsquo;re likely to find a textual component. While the ubiquity and value of textual information is clear, working with text requires specialized training and knowledge that often fall outside the realm of traditional developers and analysts. The power and insight that can be gained from textual data coupled with the unique skills needed have led to an explosion of demand in the text industry.
+
+			<br>
+			<a class="button" href="https://notesfromthelifeboat.com/post/tis/">
+				Continue reading
+			</a>
+		</div>
+	</div>
+</div>
+
+	<div class="pagination">
+	<a href="/post/" class="button" >
+			<i class="fa fa-chevron-left"></i>
+			Prev
+		</a>
+
+		<a href="/post/page/3/" class="button" >
+			Next
+			<i class="fa fa-chevron-right"></i>
+		</a>
+</div>
+
+	</div>
+
+	<footer class="site-footer">
+	<p class="text">&copy; 2020 - Released under the MIT license<br>Powered by <a href="//gohugo.io/">Hugo</a> with the <a href="//github.com/digitalcraftsman/hugo-type-theme">Type Theme</a></p>
+</footer>
+
+
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-27980065-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+</body>
+</html>

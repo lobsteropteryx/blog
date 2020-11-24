@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<title>Automating Analysis Services Tabular Projects - Part 1: Deployment&middot; Notes from the Lifeboat</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author" content="Ian Firkin">
+	<meta name="description" content="Dim interlocutions">
+	
+	<meta name="generator" content="Hugo 0.42" />
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/main.css">
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/syntax.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="https://notesfromthelifeboat.com/favicon.ico" type="image/x-icon">
+
+	<!-- RSS -->
+	
+
+	<!-- Font Awesome -->
+	<link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/default.min.css">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+	<header class="site-header">
+	<div class="branding">
+		<a href="https://notesfromthelifeboat.com/">
+		<img class="avatar" src="https://notesfromthelifeboat.com/img/avatar.png" alt=""/>
+		</a>
+		<h1 class="site-title">
+			<a href="https://notesfromthelifeboat.com/">Notes from the Lifeboat</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+			<li><a href="/about/"> About </a></li>
+
+			<li class="icon">
+	<a href="https://notesfromthelifeboat.com/" title="">
+		<i class="fa fa-fw fa-home"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="https://notesfromthelifeboat.com/index.xml" title="Subcribe">
+		<i class="fa fa-fw fa-rss"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="mailto:ian.firkin@gmail.com" title="Email">
+		<i class="fa fa-fw fa-envelope"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://github.com/lobsteropteryx" title="GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://twitter.com/lobsteropteryx" title="Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+
+	<div class="content">
+	<article>
+		<header>
+			<h1 class="title">Automating Analysis Services Tabular Projects - Part 1: Deployment</h1>
+			<p class="meta">
+	December 23, 2017 &middot; 7 minute read
+
+	
+</p>
+
+		</header>
+
+		<section class="post-content">
+			
+
+<p>My team recently starting using Microsoft&rsquo;s <a href="https://docs.microsoft.com/en-us/sql/analysis-services/tabular-models/tabular-models-ssas">Tabular Model</a> databases at work, as an intermediate layer between an operational data store and the end users who consume this data from <a href="https://powerbi.microsoft.com">Power BI</a>.  Tabular Models are an <a href="https://en.wikipedia.org/wiki/Online_analytical_processing">OLAP</a> technology, providing an in-memory data cube, with measures being defined using either <a href="https://en.wikipedia.org/wiki/MultiDimensional_eXpressions">MDX</a> or <a href="https://en.wikipedia.org/wiki/Data_analysis_expressions">DAX</a> query languages.</p>
+
+<p>As we were learning about the stack, we realized that there wasn&rsquo;t much documentation around automated deployment or testing of Tabular Models; the typical deployment story seemed to be &ldquo;right click -&gt; publish&rdquo; from Visual Studio.</p>
+
+<p>In addition, we were finding a lot of errors and regressions in the measure calculations; part of the problem was technical, due to an unfamiliar query language, but there was also difficulty in capturing and communicating the nuances of the calculations when working with business analysts.</p>
+
+<p>We&rsquo;ve managed to come up with reasonable solutions to both of these problems&ndash;we now have an automated deployment pipeline based on Jenkins, as well as a full suite of acceptance tests around our measures.  And because I work with a really outstanding <a href="https://www.proactivedigitalinsights.com/our-shared-culture">group of people</a>, I&rsquo;ve been encouraged to share the work we&rsquo;ve done.</p>
+
+<p>This post will concentrate on our deployment, and <a href="/post/analysis-services-2-testing">part 2</a> will cover the testing framework.  All of the code described in these posts is open sourced, and there is a full, working example on <a href="https://github.com/lobsteropteryx/tabularexample">github</a>; if anyone has better solutions to these issues, we&rsquo;d love to hear about them!</p>
+
+<h2 id="system-summary">System Summary</h2>
+
+<p>A Tabular Model consists of two main parts:  A standard SQL database, which acts as the data source for our model, and a <a href="https://docs.microsoft.com/en-us/sql/analysis-services/analysis-services">SQL Server Analysis Services</a> (SSAS) instance, which will house the in-memory cube that our model project defines.  The examples here will all be using SQL Server as the data source DBMS, and it is assumed that you have a Windows machine to develop on, with a local database and Analysis Services instance up and running.  Both of these are freely available in the <a href="https://www.microsoft.com/en-us/sql-server/sql-server-downloads">developer edition</a> of SQL Server.</p>
+
+<p>The production instances that these scripts were designed for all run in Azure, but the same workflow should apply to on-premises databases.  Note that, as of December 2017, Analysis Services is not supported on Linux, nor in Windows containers.</p>
+
+<h2 id="deployment-overview">Deployment Overview</h2>
+
+<p>There are five main steps to a Tabular Model deployment:</p>
+
+<ul>
+<li>Building the model project using <a href="https://github.com/Microsoft/msbuild">MSBuild</a></li>
+<li>Updating the build outputs to change deployment environments (i.e., from <code>validation</code> to <code>production</code>)</li>
+<li>Generating a deployment script from the build outputs using the SSAS <a href="https://docs.microsoft.com/en-us/sql/analysis-services/multidimensional-models/deploy-model-solutions-using-the-deployment-wizard">Deployment Wizard</a></li>
+<li>Executing the deployment script against the SSAS instance</li>
+<li>Refreshing the cube to pull in data</li>
+</ul>
+
+<p>We&rsquo;ll tie the individual build steps together via PowerShell.</p>
+
+<h3 id="building-the-model">Building the Model</h3>
+
+<p>The first step is simple&ndash;we just need to build our Tabular Model project.  we can do this easily from PowerShell using MSBuild; assuming we&rsquo;ve set up a build configuration called <code>validation</code>, it looks like this:</p>
+<div class="highlight"><pre class="chroma"><code class="language-PowerShell" data-lang="PowerShell"><span class="n">msbuild</span> <span class="n">TabularExample</span><span class="p">.</span><span class="n">smproj</span> <span class="s2">&#34;/p:Configuration=validation&#34;</span> <span class="p">/</span><span class="n">t</span><span class="err">:</span><span class="n">Build</span> <span class="p">/</span><span class="n">p</span><span class="err">:</span><span class="n">VisualStudioVersion</span><span class="p">=</span><span class="n">14</span><span class="p">.</span><span class="n">0</span></code></pre></div>
+<p>The outputs of a successful build process look like the following:</p>
+<div class="highlight"><pre class="chroma"><code class="language-PowerShell" data-lang="PowerShell"><span class="n">Mode</span>                <span class="n">LastWriteTime</span>         <span class="n">Length</span> <span class="n">Name</span>
+<span class="p">----</span>                <span class="p">-------------</span>         <span class="p">------</span> <span class="p">----</span>
+<span class="n">-a</span><span class="p">----</span>       <span class="n">12</span><span class="p">/</span><span class="n">23</span><span class="p">/</span><span class="n">2017</span>   <span class="n">7</span><span class="err">:</span><span class="n">45</span> <span class="n">PM</span>           <span class="n">1561</span> <span class="n">Model</span><span class="p">.</span><span class="n">asdatabase</span>
+<span class="n">-a</span><span class="p">----</span>       <span class="n">12</span><span class="p">/</span><span class="n">23</span><span class="p">/</span><span class="n">2017</span>   <span class="n">7</span><span class="err">:</span><span class="n">45</span> <span class="n">PM</span>           <span class="n">1356</span> <span class="n">Model</span><span class="p">.</span><span class="n">deploymentoptions</span>
+<span class="n">-a</span><span class="p">----</span>       <span class="n">12</span><span class="p">/</span><span class="n">23</span><span class="p">/</span><span class="n">2017</span>   <span class="n">7</span><span class="err">:</span><span class="n">45</span> <span class="n">PM</span>            <span class="n">808</span> <span class="n">Model</span><span class="p">.</span><span class="n">deploymenttargets</span></code></pre></div>
+<p>These outputs are <a href="https://docs.microsoft.com/en-us/sql/analysis-services/multidimensional-models/deploy-model-solutions-using-the-deployment-wizard">used</a> to generate an XMLA deployment script, and we may want to change them before passing them on to the Deployment Wizard.  In our particular case, we wanted to preserve the users and roles assigned to the database across deployments, and we needed to preserve the connection string to the SQL datasource.</p>
+
+<p>Most of the settings are configurable via Visual Studio, but there are several that are not exposed via the UI, and the typical configuration management workflows don&rsquo;t work properly with Tabular Model projects.</p>
+
+<p>In order to work around these issues and set up the configuration files the way we want, we can check them into source control, and use a Powershell script to templatize them.</p>
+
+<h3 id="updating-build-outputs">Updating Build Outputs</h3>
+
+<p>Once we&rsquo;ve generated the <code>Model.deploymentoptions</code> and <code>Model.deploymenttargets</code> files once, we can create a <code>deploymentoptions</code> directory in our project, and check those files in.  After our build step, we can templatize the files in <code>deploymentoptions</code> using the PowerShell <code>ExpandString</code> command, then overwrite the generated files.  The checked-in files look like this:</p>
+<div class="highlight"><pre class="chroma"><code class="language-xml" data-lang="xml"><span class="nt">&lt;DeploymentOptions</span> <span class="na">xmlns:xsd=</span><span class="s">&#34;http://www.w3.org/2001/XMLSchema&#34;</span> 
+                   <span class="na">xmlns:xsi=</span><span class="s">&#34;http://www.w3.org/2001/XMLSchema-instance&#34;</span> 
+                   <span class="na">xmlns:ddl2=</span><span class="s">&#34;http://schemas.microsoft.com/analysisservices/2003/engine/2&#34;</span> 
+                   <span class="na">xmlns:ddl2_2=</span><span class="s">&#34;http://schemas.microsoft.com/analysisservices/2003/engine/2/2&#34;</span> 
+                   <span class="na">xmlns:ddl100_100=</span><span class="s">&#34;http://schemas.microsoft.com/analysisservices/2008/engine/100/100&#34;</span> 
+                   <span class="na">xmlns:ddl200=</span><span class="s">&#34;http://schemas.microsoft.com/analysisservices/2010/engine/200&#34;</span> 
+                   <span class="na">xmlns:ddl200_200=</span><span class="s">&#34;http://schemas.microsoft.com/analysisservices/2010/engine/200/200&#34;</span> 
+                   <span class="na">xmlns:ddl300=</span><span class="s">&#34;http://schemas.microsoft.com/analysisservices/2011/engine/300&#34;</span> 
+                   <span class="na">xmlns:ddl300_300=</span><span class="s">&#34;http://schemas.microsoft.com/analysisservices/2011/engine/300/300&#34;</span> 
+                   <span class="na">xmlns:ddl400=</span><span class="s">&#34;http://schemas.microsoft.com/analysisservices/2012/engine/400&#34;</span> 
+                   <span class="na">xmlns:ddl400_400=</span><span class="s">&#34;http://schemas.microsoft.com/analysisservices/2012/engine/400/400&#34;</span> 
+                   <span class="na">xmlns:ddl500=</span><span class="s">&#34;http://schemas.microsoft.com/analysisservices/2013/engine/500&#34;</span> 
+                   <span class="na">xmlns:ddl500_500=</span><span class="s">&#34;http://schemas.microsoft.com/analysisservices/2013/engine/500/500&#34;</span> 
+                   <span class="na">xmlns:dwd=</span><span class="s">&#34;http://schemas.microsoft.com/DataWarehouse/Designer/1.0&#34;</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;TransactionalDeployment&gt;</span>true<span class="nt">&lt;/TransactionalDeployment&gt;</span>
+      <span class="nt">&lt;PartitionDeployment&gt;</span>DeployPartitions<span class="nt">&lt;/PartitionDeployment&gt;</span>
+      <span class="nt">&lt;RoleDeployment&gt;</span>RetainRoles<span class="nt">&lt;/RoleDeployment&gt;</span>
+      <span class="nt">&lt;ProcessingOption&gt;</span>DoNotProcess<span class="nt">&lt;/ProcessingOption&gt;</span>
+      <span class="nt">&lt;ImpactAnalysisFile&gt;&lt;/ImpactAnalysisFile&gt;</span>
+      <span class="nt">&lt;ConfigurationSettingsDeployment&gt;</span>Retain<span class="nt">&lt;/ConfigurationSettingsDeployment&gt;</span>
+      <span class="nt">&lt;OptimizationSettingsDeployment&gt;</span>Deploy<span class="nt">&lt;/OptimizationSettingsDeployment&gt;</span>
+      <span class="nt">&lt;WriteBackTableCreation&gt;</span>UseExisting<span class="nt">&lt;/WriteBackTableCreation&gt;</span>
+<span class="nt">&lt;/DeploymentOptions&gt;</span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-xml" data-lang="xml"><span class="nt">&lt;DeploymentTarget</span> <span class="na">xmlns:xsd=</span><span class="s">&#34;http://www.w3.org/2001/XMLSchema&#34;</span>
+                  <span class="na">xmlns:xsi=</span><span class="s">&#34;http://www.w3.org/2001/XMLSchema-instance&#34;</span> <span class="na">xmlns:ddl2=</span><span class="s">&#34;http://schemas.microsoft.com/analysisservices/2003/engine/2&#34;</span>
+                  <span class="na">xmlns:ddl2_2=</span><span class="s">&#34;http://schemas.microsoft.com/analysisservices/2003/engine/2/2&#34;</span> <span class="na">xmlns:ddl100_100=</span><span class="s">&#34;http://schemas.microsoft.com/analysisservices/2008/engine/100/100&#34;</span>
+                  <span class="na">xmlns:ddl200=</span><span class="s">&#34;http://schemas.microsoft.com/analysisservices/2010/engine/200&#34;</span> 
+                  <span class="na">xmlns:ddl200_200=</span><span class="s">&#34;http://schemas.microsoft.com/analysisservices/2010/engine/200/200&#34;</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;Database&gt;</span>$environment<span class="nt">&lt;/Database&gt;</span>
+      <span class="nt">&lt;Server&gt;</span>$analysisServicesServer<span class="nt">&lt;/Server&gt;</span>
+      <span class="nt">&lt;ConnectionString&gt;</span>DataSource=$analysisServicesServer;Timeout=0;UID=$analysisServicesUsername;Password=$analysisServicesPassword;<span class="nt">&lt;/ConnectionString&gt;</span>
+<span class="nt">&lt;/DeploymentTarget&gt;</span></code></pre></div>
+<p>Note that we&rsquo;re setting the <code>RoleDeployment</code> to <code>RetainRoles</code>, and <code>ConfigurationSettingsDeployment</code> to <code>Retain</code>.  This means that the users and groups, as well as the data source connection information will be persistent across deployments.  We also set <code>ProcessingOption</code> to <code>DoNotProcess</code>; this means that we can build an empty cube without needing a connection to the underlying data source.  Refreshing the cube data can take hours, so we tackle that as a <a href="#refreshing-the-cube">separate step</a>.</p>
+
+<p>The PowerShell script to render and overwrite the generated files looks like:</p>
+<div class="highlight"><pre class="chroma"><code class="language-powershell" data-lang="powershell"><span class="c"># Copy build outputs and deployment options to deployment directory</span>
+<span class="nv">$deploymentDir</span> <span class="p">=</span> <span class="s2">&#34;.\deployment&#34;</span>
+<span class="n">mkdir</span> <span class="n">-Force</span> <span class="nv">$deploymentDir</span>
+<span class="n">cp</span> <span class="s2">&#34;bin\$environment\*.*&#34;</span> <span class="nv">$deploymentDir</span>
+<span class="n">cp</span> <span class="p">.\</span><span class="n">deploymentoptions</span><span class="p">\*.*</span> <span class="nv">$deploymentDir</span>
+
+<span class="c"># Update deployment targets with parameters</span>
+<span class="nv">$template</span> <span class="p">=</span> <span class="nb">Get-Content</span> <span class="p">.\</span><span class="n">deploymentoptions</span><span class="p">\</span><span class="n">Model</span><span class="p">.</span><span class="n">deploymenttargets</span>
+<span class="nv">$expandedTemplate</span> <span class="p">=</span> <span class="nv">$ExecutionContext</span><span class="p">.</span><span class="n">InvokeCommand</span><span class="p">.</span><span class="n">ExpandString</span><span class="p">(</span><span class="nv">$template</span><span class="p">)</span>
+<span class="nv">$expandedTemplate</span> <span class="p">|</span> <span class="nb">Set-Content</span> <span class="s2">&#34;$deploymentDir\Model.deploymenttargets&#34;</span></code></pre></div>
+<p>Once we&rsquo;ve massaged the configuration files, we can pass them on to the Deployment Wizard to generate our deployment script.</p>
+
+<h3 id="creating-the-deployment-script">Creating the Deployment Script</h3>
+
+<p>The Deployment Wizard can be called from PowerShell like so:</p>
+<div class="highlight"><pre class="chroma"><code class="language-powershell" data-lang="powershell"><span class="c"># Create the deployment script</span>
+<span class="n">Microsoft</span><span class="p">.</span><span class="n">AnalysisServices</span><span class="p">.</span><span class="n">Deployment</span><span class="p">.</span><span class="n">exe</span> <span class="s2">&#34;$deploymentDir\Model.asdatabase&#34;</span> <span class="p">/</span><span class="n">s</span><span class="err">:</span><span class="s2">&#34;$deploymentDir\deploy.log&#34;</span> <span class="p">/</span><span class="n">o</span><span class="err">:</span><span class="s2">&#34;$deploymentDir\deploy.xmla&#34;</span> <span class="p">|</span> <span class="nb">Out-Default</span></code></pre></div>
+<p>There are a couple of gotchas with the Deployment Wizard; if you&rsquo;re updating an existing cube and you want to preserve its users and roles, the Deployment Wizard <em>must</em> be able to connect to the existing in-memory database&ndash;running it in disconnected mode won&rsquo;t work.</p>
+
+<p>In addition, troubleshooting error conditions can be a bit tricky; if a problem occurs, the <code>Microsoft.AnalysisServices.Deployment.exe</code> call won&rsquo;t respect any <code>$ErrorActionPreference</code> settings.  That means that your XMLA script may not get generated, and you&rsquo;ll have to check the log file (passed into the <code>/s</code> argument) to see what went wrong.</p>
+
+<h3 id="executing-the-deployment-script">Executing the Deployment Script</h3>
+
+<p>Assuming that all went well and we got an XMLA file generated, we just have to execute it to rebuild our cube:</p>
+<div class="highlight"><pre class="chroma"><code class="language-powershell" data-lang="powershell"><span class="c"># Deploy the model</span>
+<span class="nv">$SECURE_PASSWORD</span> <span class="p">=</span> <span class="nb">ConvertTo-SecureString</span> <span class="nv">$analysisServicesPassword</span> <span class="n">-AsPlainText</span> <span class="n">-Force</span>
+<span class="nv">$CREDENTIAL</span> <span class="p">=</span> <span class="nb">New-Object</span> <span class="n">System</span><span class="p">.</span><span class="n">Management</span><span class="p">.</span><span class="n">Automation</span><span class="p">.</span><span class="n">PSCredential</span> <span class="p">(</span><span class="nv">$analysisServicesUsername</span><span class="p">,</span> <span class="nv">$SECURE_PASSWORD</span><span class="p">)</span>
+<span class="nb">Invoke-ASCmd</span> <span class="err">–</span><span class="n">InputFile</span> <span class="s2">&#34;$workspace\$deploymentDir\deploy.xmla&#34;</span> <span class="n">-Server</span> <span class="nv">$analysisServicesServer</span> <span class="n">-Credential</span> <span class="nv">$CREDENTIAL</span></code></pre></div>
+<p>Note that SSAS doesn&rsquo;t have an equivalent of database-level security, so the username and password here will be a Windows or Active Directory account.</p>
+
+<h3 id="refreshing-the-cube">Refreshing the Cube</h3>
+
+<p>If everything has succeed so far, we should be able to connect to our SSAS instance and see a database called <code>validate</code>.  Currently there&rsquo;s no data in our cube, but we can process the cube using a bit more PowerShell:</p>
+<div class="highlight"><pre class="chroma"><code class="language-powershell" data-lang="powershell"><span class="nb">Invoke-ProcessASDatabase</span> <span class="n">-Server</span> <span class="nv">$analysisServicesServer</span> <span class="n">-RefreshType</span> <span class="n">Full</span> <span class="n">-DatabaseName</span> <span class="s2">&#34;$environment&#34;</span> <span class="n">-Credential</span> <span class="nv">$CREDENTIAL</span></code></pre></div>
+<p>Once this is complete, we should see data in our cube.  If we set the <code>TransactionalDeployment</code> flag in our deployment settings, we can do a refresh with minimal downtime&ndash;SSAS will build a full, new cube, then swap out the old version.  This is important, since we&rsquo;ll have to re-process in order to pull in any new data from our data source, even if there haven&rsquo;t been any changes to the model.</p>
+
+<h2 id="promoting-changes-across-environments">Promoting Changes across  Environments</h2>
+
+<p>For the most part, promoting the model through a series of environments is straightforward; we can&rsquo;t promote the same artifact through a Dev -&gt; Test -&gt; Prod type of workflow, but by changing the configuration files and rebuilding, we can at least deploy the same source.</p>
+
+<p>One of the pain points around promotion is changing the underlying data source for different environments; by design, the Deployment Wizard will not persist any database credentials, which means that we can&rsquo;t transform the data source the same way we did for the other deployment settings.  There is an additional <a href="https://docs.microsoft.com/en-us/sql/analysis-services/multidimensional-models/deployment-script-files-solution-deployment-config-settings"><code>Model.configsettings</code></a> file, but any changes to the data source credentials don&rsquo;t get persisted into the XMLA script.</p>
+
+<p>The way we worked around this issue was to create an empty cube for each environment, then set up the data source connection strings manually, once.  We can then ensure that they don&rsquo;t get overwritten by setting <code>ConfigurationSettingsDeployment</code> to <code>Retain</code> in our <code>Model.deploymentoptions</code> file.  Once we have the initial cube built, we can run the full deployment script as part of our CI process whenever changes are pushed to master; in Jenkins, we can <a href="https://support.cloudbees.com/hc/en-us/articles/203802500-Injecting-Secrets-into-Jenkins-Build-Jobs">inject</a> the credentials, and the <a href="https://github.com/lobsteropteryx/tabular-example/blob/master/deploy_model.ps1">script</a> execution looks like this:</p>
+<div class="highlight"><pre class="chroma"><code class="language-powershell" data-lang="powershell"><span class="p">.\</span><span class="n">deploy_model</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-workspace</span> <span class="s2">&#34;</span><span class="p">$(</span><span class="nv">$ENV:WORKSPACE</span><span class="p">)</span><span class="s2">&#34;</span> <span class="n">-environment</span> <span class="s2">&#34;</span><span class="p">$(</span><span class="nv">$ENV:ENVIRONMENT</span><span class="p">)</span><span class="s2">&#34;</span> <span class="n">-analysisServicesUsername</span> <span class="s2">&#34;</span><span class="p">$(</span><span class="nv">$ENV:ANALYSIS_SERVICES_USER</span><span class="p">)</span><span class="s2">&#34;</span> <span class="n">-analysisServicesPassword</span> <span class="s2">&#34;</span><span class="p">$(</span><span class="nv">$ENV:ANALYSIS_SERVICES_PASSWORD</span><span class="p">)</span><span class="s2">&#34;</span></code></pre></div>
+<p>Note that that we&rsquo;re using compatibility level 1200; at 1400, the <code>ConfigurationSettingsDeployment</code> setting seems to be ignored, and the connection string is wiped out on each deployment.</p>
+
+<p>Once we had a way to do repeatable deployments, we worked to create a test environment where we could execute our measures against a known data set for validation.  That process will be covered in the next post.</p>
+
+
+			
+				<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "notesfromthelifeboat" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+			
+		</section>
+	</article>
+	</div>
+
+	<footer class="site-footer">
+	<p class="text">&copy; 2020 - Released under the MIT license<br>Powered by <a href="//gohugo.io/">Hugo</a> with the <a href="//github.com/digitalcraftsman/hugo-type-theme">Type Theme</a></p>
+</footer>
+
+
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-27980065-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+</body>
+</html>

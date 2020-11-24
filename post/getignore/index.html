@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<title>Ignore this Post&middot; Notes from the Lifeboat</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author" content="Ian Firkin">
+	<meta name="description" content="Dim interlocutions">
+	
+	<meta name="generator" content="Hugo 0.42" />
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/main.css">
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/syntax.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="https://notesfromthelifeboat.com/favicon.ico" type="image/x-icon">
+
+	<!-- RSS -->
+	
+
+	<!-- Font Awesome -->
+	<link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/default.min.css">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+	<header class="site-header">
+	<div class="branding">
+		<a href="https://notesfromthelifeboat.com/">
+		<img class="avatar" src="https://notesfromthelifeboat.com/img/avatar.png" alt=""/>
+		</a>
+		<h1 class="site-title">
+			<a href="https://notesfromthelifeboat.com/">Notes from the Lifeboat</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+			<li><a href="/about/"> About </a></li>
+
+			<li class="icon">
+	<a href="https://notesfromthelifeboat.com/" title="">
+		<i class="fa fa-fw fa-home"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="https://notesfromthelifeboat.com/index.xml" title="Subcribe">
+		<i class="fa fa-fw fa-rss"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="mailto:ian.firkin@gmail.com" title="Email">
+		<i class="fa fa-fw fa-envelope"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://github.com/lobsteropteryx" title="GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://twitter.com/lobsteropteryx" title="Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+
+	<div class="content">
+	<article>
+		<header>
+			<h1 class="title">Ignore this Post</h1>
+			<p class="meta">
+	December 26, 2016 &middot; 3 minute read
+
+	
+</p>
+
+		</header>
+
+		<section class="post-content">
+			
+
+<p>Lately I&rsquo;ve come across several software projects at work that have build artifacts checked into their repositories&ndash;nuget packages for .NET, minified bundles on javascript projects, and .pyc files in Python modules.</p>
+
+<p>Consultants in the field of GIS often work across multiple languages, and it can be difficult to keep track of which files should be ignored by source control; luckily there is a collection of standard <a href="https://github.com/github/gitignore">.gitignore templates</a>.  If you find that your project has files checked in that are included in one of the templates, that&rsquo;s a good sign that something is amiss!</p>
+
+<p>There are various tools to manage these templates; I&rsquo;ll demonstrate using one such tool, <a href="https://github.com/gotgenes/getignore">getignore</a>, to bootstrap some standard .gitignore files on a Windows machine.  Full disclosure:  I&rsquo;m a contributor on this project.</p>
+
+<h2 id="installing-the-tools">Installing the Tools</h2>
+
+<p>Getignore is a cross-platform tool, so you can always just grab the latest precompiled <a href="https://github.com/gotgenes/getignore/releases">binary</a> for your OS, and drop it somewhere in your PATH.</p>
+
+<p>On a Windows machine, an easier way to install is to use <a href="https://chocolatey.org">chocolatey</a>; if you aren&rsquo;t using this great tool, check out their <a href="https://chocolatey.org/install">installation instructions</a>.  Once you have chocolatey up and running, you can just open a command prompt as Administrator, and do</p>
+
+<pre><code>choco install -y getignore
+</code></pre>
+
+<p>Once the package has installed, you can pull down the template(s) for a language or framework by using <code>getignore get &lt;language&gt;</code>.  By default the contents will be written to <code>stdout</code>, and you can use the normal <a href="http://ss64.com/nt/syntax-redirection.html">redirect operators</a> (i.e., <code>&gt;&gt;</code>) to concatenate the output to a file.</p>
+
+<h2 id="global-ignore-file">Global Ignore File</h2>
+
+<p>The global .gitignore file will be applied to all projects that you work on; this file lives in the <code>%USERPROFILE%</code> directory (something like <code>C:/Users/username</code>), and typically contains entries for the OS and editor(s) you develop on. To ignore all outputs from Windows, PyCharm, Webstorm, and Visual Studio just do:</p>
+<div class="highlight"><pre class="chroma"><code class="language-shell" data-lang="shell">getignore get Global/Windows Global/JetBrains VisualStudio &gt;&gt; %USERPROFILE%/.gitignore</code></pre></div>
+<h2 id="project-ignore-files">Project Ignore Files</h2>
+
+<p>Language-specific <code>.gitignore</code> files will typically live in each git repository; to add the default ignore file to a Python project, simply navigate to the project directory and do:</p>
+
+<pre><code>getignore get Python &gt;&gt; .gitignore
+</code></pre>
+
+<p>For a javascript project, a good place to start is:</p>
+
+<pre><code>getignore get Node &gt;&gt; .gitignore
+</code></pre>
+
+<h3 id="editing-ignore-files">Editing Ignore Files</h3>
+
+<p>These are just text files with a documented <a href="https://git-scm.com/docs/gitignore">format</a>, so the default templates can easily be customized.  For a javascript project, we may also want to ignore changes to <code>dist</code> for our build outputs, and <code>bower_components</code> if we&rsquo;re managing some packages using <a href="https://bower.io/">Bower</a>.  To add those directories, just open up the file and append</p>
+
+<pre><code>dist
+bower_components
+</code></pre>
+
+<p>That&rsquo;s all there is to it!  Having proper <code>.gitignore</code> files in place means less time spent dealing with merge conflicts and versioning issues, and more time spent shipping features, so make sure they&rsquo;re in place for new projects, and double check existing ones.</p>
+
+
+			
+				<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "notesfromthelifeboat" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+			
+		</section>
+	</article>
+	</div>
+
+	<footer class="site-footer">
+	<p class="text">&copy; 2020 - Released under the MIT license<br>Powered by <a href="//gohugo.io/">Hugo</a> with the <a href="//github.com/digitalcraftsman/hugo-type-theme">Type Theme</a></p>
+</footer>
+
+
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-27980065-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+</body>
+</html>

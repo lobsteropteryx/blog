@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<title>Testing with ArcPy: Isolation and Mocking&middot; Notes from the Lifeboat</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author" content="Ian Firkin">
+	<meta name="description" content="Dim interlocutions">
+	
+	<meta name="generator" content="Hugo 0.42" />
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/main.css">
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/syntax.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="https://notesfromthelifeboat.com/favicon.ico" type="image/x-icon">
+
+	<!-- RSS -->
+	
+
+	<!-- Font Awesome -->
+	<link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/default.min.css">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+	<header class="site-header">
+	<div class="branding">
+		<a href="https://notesfromthelifeboat.com/">
+		<img class="avatar" src="https://notesfromthelifeboat.com/img/avatar.png" alt=""/>
+		</a>
+		<h1 class="site-title">
+			<a href="https://notesfromthelifeboat.com/">Notes from the Lifeboat</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+			<li><a href="/about/"> About </a></li>
+
+			<li class="icon">
+	<a href="https://notesfromthelifeboat.com/" title="">
+		<i class="fa fa-fw fa-home"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="https://notesfromthelifeboat.com/index.xml" title="Subcribe">
+		<i class="fa fa-fw fa-rss"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="mailto:ian.firkin@gmail.com" title="Email">
+		<i class="fa fa-fw fa-envelope"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://github.com/lobsteropteryx" title="GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://twitter.com/lobsteropteryx" title="Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+
+	<div class="content">
+	<article>
+		<header>
+			<h1 class="title">Testing with ArcPy: Isolation and Mocking</h1>
+			<p class="meta">
+	July 11, 2017 &middot; 8 minute read
+
+	
+</p>
+
+		</header>
+
+		<section class="post-content">
+			
+
+<p><a href="/post/testing-arcpy-1">Test fixtures</a> can help us run our each of our tests against a clean set of known data, but arcpy can still throw a few curve balls at us&ndash;there are global singletons we need to be aware of (i.e., <code>arcpy.env</code>), and many GP tools can have side effects (such as changing the current working directory) or limitations of their own (i.e., the <a href="http://pro.arcgis.com/en/pro-app/tool-reference/data-management/project.htm">Project</a> and <a href="http://pro.arcgis.com/en/pro-app/tool-reference/data-management/copy.htm">Copy</a> tools don&rsquo;t support in-memory workspaces).  In addition, just loading arcpy has a significant performance cost, and we want our tests to be as fast as possible.</p>
+
+<p>We also want to be sure that we&rsquo;re testing <strong>our</strong> business logic and not arcpy&rsquo;s; ideally our tests will be making assertions about the state of the system after some public method has been called, and not testing the implementation details&ndash;we care about <em>what</em> the state of the system looks like, not <em>how</em> it got there.</p>
+
+<p>To avoid some of the difficulties around the arcpy module, and keep focused on our own, custom, business logic, we can use a couple of techniques:  <strong>Isolating</strong> arcpy within our project, and <strong>Mocking</strong> it when we need to test some adjacent logic.</p>
+
+<h2 id="isolating-arcpy-calls">Isolating arcpy calls</h2>
+
+<p>In a project of even moderate size and complexity, it&rsquo;s almost always worth wrapping arcpy calls, keeping them isolated to their own module(s), rather than sprinkling them throughout the codebase.  In practice, this often means that we want only a single <code>import arcpy</code> statement in our project, with the majority of our business logic in other modules.  By doing so, we can protect ourselves against future changes and decrease our iteration time substantially.</p>
+
+<h3 id="protection-against-changes">Protection against changes</h3>
+
+<p>We don&rsquo;t have control over the arcpy module, and there&rsquo;s no guarantee that the function signatures or pubic interfaces won&rsquo;t change the next time we upgrade ArcMap; we might be asked to port our application to use ESRI&rsquo;s new <a href="https://developers.arcgis.com/python/">Python API</a>, or even <a href="http://www.gdal.org/">GDAL</a>!  By keeping our arcmap calls isolated, we minimize the number of places we need to make code changes in the future if our underlying GIS system changes.</p>
+
+<h3 id="iteration-time">Iteration time</h3>
+
+<p>There&rsquo;s no getting around it:  Testing with arcpy is SLOW.  As the codebase grows and the number of tests increase, it can make sense to run a subset of the tests while you&rsquo;re iterating, and the full suite less frequently, before checking in.  By keeping arcpy calls isolated, we can get orders of magnitude better performance out of our tests when working in a part of the codebase that doesn&rsquo;t need arcpy.</p>
+
+<p>By way of example, consider a small module that updates field values in a geodatabase; we&rsquo;ll call it <code>updater.py</code>:</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">arcpy</span>
+
+<span class="k">def</span> <span class="nf">update_field</span><span class="p">(</span><span class="n">feature_class</span><span class="p">):</span>
+    <span class="n">fields</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;MY_STRING_FIELD&#39;</span><span class="p">]</span>
+    <span class="k">with</span> <span class="n">arcpy</span><span class="o">.</span><span class="n">da</span><span class="o">.</span><span class="n">UpdateCursor</span><span class="p">(</span><span class="n">feature_class</span><span class="p">,</span> <span class="n">fields</span><span class="p">)</span> <span class="k">as</span> <span class="n">cursor</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="p">:</span>
+            <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">init_cap</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">cursor</span><span class="o">.</span><span class="n">updateRow</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">init_cap</span><span class="p">(</span><span class="n">field_value</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s2">&#34; &#34;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">word</span><span class="o">.</span><span class="n">capitalize</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">field_value</span><span class="o">.</span><span class="n">split</span><span class="p">())</span></code></pre></div>
+<p>Our tests for the <code>init_cap</code> method might look like:</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">unittest</span> <span class="kn">import</span> <span class="n">TestCase</span>
+<span class="kn">from</span> <span class="nn">updater</span> <span class="kn">import</span> <span class="n">init_cap</span>
+
+<span class="k">class</span> <span class="nc">TestInitCap</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">test_returns_empty_string_if_field_is_empty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">expected</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">actual</span> <span class="o">=</span> <span class="n">init_cap</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">expected</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">test_capitalizes_first_letter_of_single_word</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">expected</span> <span class="o">=</span> <span class="s1">&#39;Foo&#39;</span>
+        <span class="n">actual</span> <span class="o">=</span> <span class="n">init_cap</span><span class="p">(</span><span class="s1">&#39;foo&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">expected</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">test_capitalizes_first_letter_of_multiple_words</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">expected</span> <span class="o">=</span> <span class="s1">&#39;Foo Bar&#39;</span>
+        <span class="n">actual</span> <span class="o">=</span> <span class="n">init_cap</span><span class="p">(</span><span class="s1">&#39;foo bar&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">expected</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">test_does_not_capitalize_words_that_start_with_numbers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">expected</span> <span class="o">=</span> <span class="s1">&#39;3g&#39;</span>
+        <span class="n">actual</span> <span class="o">=</span> <span class="n">init_cap</span><span class="p">(</span><span class="s1">&#39;3g&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">expected</span><span class="p">)</span></code></pre></div>
+<p>Even without using a single arcpy call, the runtime of our tests is terrible:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ pytest tests/test_updater.py
+<span class="o">=============================</span> <span class="nb">test</span> session <span class="nv">starts</span> <span class="o">=============================</span>
+platform win32 -- Python <span class="m">2</span>.7.12, pytest-3.1.2, py-1.4.34, pluggy-0.4.0
+rootdir: C:<span class="se">\d</span>evelop<span class="se">\t</span>esting-arcpy, inifile:
+collected <span class="m">4</span> items
+
+tests<span class="se">\t</span>est_updater.py ....
+
+<span class="o">==========================</span> <span class="m">4</span> passed in <span class="m">14</span>.35 <span class="nv">seconds</span> <span class="o">==========================</span></code></pre></div>
+<p>By splitting the <code>init_cap</code> method out into its own module, we can avoid importing arcpy, and get a much better runtime:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ pytest tests/test_updater.py
+<span class="o">=============================</span> <span class="nb">test</span> session <span class="nv">starts</span> <span class="o">=============================</span>
+platform win32 -- Python <span class="m">2</span>.7.12, pytest-3.1.2, py-1.4.34, pluggy-0.4.0
+rootdir: C:<span class="se">\d</span>evelop<span class="se">\t</span>esting-arcpy, inifile:
+collected <span class="m">4</span> items
+
+tests<span class="se">\t</span>est_updater.py ....
+
+<span class="o">==========================</span> <span class="m">4</span> passed in <span class="m">0</span>.03 <span class="nv">seconds</span> <span class="o">===========================</span></code></pre></div>
+<p>That&rsquo;s almost 500 times faster!</p>
+
+<h2 id="mocking-arcpy-calls">Mocking arcpy calls</h2>
+
+<p>Sometimes we can&rsquo;t help but have arcpy objects mixed in with our business logic; we may be working closely with domain objects in the GIS, (i.e. <a href="http://desktop.arcgis.com/en/arcmap/latest/analyze/arcpy-mapping/mapdocument-class.htm">MapDocument</a> or <a href="http://desktop.arcgis.com/en/arcmap/latest/analyze/arcpy-mapping/layer-class.htm">Layer</a> objects), and our business logic might be interacting with them directly.  In these cases, we can <a href="https://en.wikipedia.org/wiki/Mock_object">mock</a> the arcpy calls and objects, to &ldquo;get at&rdquo; our actual business logic and test its functionality.</p>
+
+<p>To mock arcpy, we can use the <a href="https://docs.python.org/3/library/unittest.mock.html#unittest.mock.patch">patch</a> decorator of python&rsquo;s mock class; at Python 2.7, the <code>mock</code> module needs to be installed separately:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">pip install mock</code></pre></div>
+<p>Now we can use the <code>patch</code> decorator to mock out the arcpy module; note that the path we pass to the decorator is relative to where the arcpy module is used, as detailed in the <a href="https://docs.python.org/3/library/unittest.mock.html#where-to-patch">documentation</a>.  Since we&rsquo;re only importing arcpy from our wrapper module, the path will be <code>my_project.arcpy_wrapper.arcpy</code>:</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">unittest</span> <span class="kn">import</span> <span class="n">TestCase</span>
+<span class="kn">from</span> <span class="nn">mock</span> <span class="kn">import</span> <span class="n">patch</span>
+<span class="kn">import</span> <span class="nn">my_project.arcpy_wrapper</span>
+
+<span class="nd">@patch</span><span class="p">(</span><span class="s1">&#39;my_project.arcpy_wrapper.arcpy&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">TestArcpyWrapper</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+  <span class="k">pass</span></code></pre></div>
+<p>To demonstrate how to use the mock module, we need an example.</p>
+
+<h3 id="listing-unique-workspaces-within-a-map-document">Listing unique workspaces within a map document</h3>
+
+<p>Suppose we want to get a list of the unique workspaces used by a particular map document; perhaps we&rsquo;re setting up a new server instance, and we need to register the data sources that our map services will consume.  There could be SDE connections, shapefiles, and cloud-based services all within a single map, and each data source could be used by multiple layers.</p>
+
+<p>We can get a list of <a href="http://desktop.arcgis.com/en/arcmap/10.3/analyze/arcpy-mapping/layer-class.htm"><code>Layer</code></a> objects from the <a href="http://desktop.arcgis.com/en/arcmap/10.3/analyze/arcpy-mapping/listlayers.htm"><code>ListLayers</code></a> method, and we&rsquo;ll have to ask each layer for its <code>workspacePath</code> property to build our list.  Once we have the list of <em>all</em> workspaces for all the layers, we need to filter out the unique ones.  We&rsquo;d like to be able to test the deduplication logic, and not arcpy&rsquo;s ability to list layers or workspaces.  In order to take the arcpy logic out of consideration, we need to mock both the <code>ListLayers</code> call, as well as any <code>Layer</code> objects that would be returned.  Our first test might look like this:</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">unittest</span> <span class="kn">import</span> <span class="n">TestCase</span>
+<span class="kn">from</span> <span class="nn">mock</span> <span class="kn">import</span> <span class="n">patch</span><span class="p">,</span> <span class="n">MagicMock</span>
+<span class="kn">from</span> <span class="nn">arcpy_wrapper</span> <span class="kn">import</span> <span class="n">list_workspaces_for_mxd</span>
+
+<span class="nd">@patch</span><span class="p">(</span><span class="s1">&#39;my_project.arcpy_helper.arcpy&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">TestListDataSources</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">test_list_single_data_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mock_arcpy</span><span class="p">):</span>
+        <span class="n">data_source</span> <span class="o">=</span> <span class="s1">&#39;layer1&#39;</span>
+
+        <span class="n">layer</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+        <span class="n">layer</span><span class="o">.</span><span class="n">supports</span><span class="o">.</span><span class="n">return_value</span><span class="o">=</span><span class="bp">True</span>
+        <span class="n">layer</span><span class="o">.</span><span class="n">workspacePath</span> <span class="o">=</span> <span class="n">data_source</span>
+
+        <span class="n">mock_arcpy</span><span class="o">.</span><span class="n">mapping</span><span class="o">.</span><span class="n">ListLayers</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">(</span><span class="n">return_value</span><span class="o">=</span><span class="p">[</span><span class="n">layer</span><span class="p">])</span>
+        <span class="n">mxd</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">expected</span> <span class="o">=</span> <span class="p">[</span><span class="n">data_source</span><span class="p">]</span>
+        <span class="n">actual</span> <span class="o">=</span> <span class="n">list_workspaces_for_mxd</span><span class="p">(</span><span class="n">mxd</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">expected</span><span class="p">,</span> <span class="n">actual</span><span class="p">)</span></code></pre></div>
+<p>We use the <a href="https://docs.python.org/3/library/unittest.mock.html#unittest.mock.MagicMock">MagicMock</a> first to create a &ldquo;fake&rdquo; <code>Layer</code> object, and then again to force the <code>arcpy.mapping.ListLayers</code> call to return an array of our fake <code>Layer</code>s.  We can run this test without errors, and watch our assertion fail:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ pytest tests/test_arcpy_wrapper.py
+<span class="o">=============================</span> <span class="nb">test</span> session <span class="nv">starts</span> <span class="o">=============================</span>
+platform win32 -- Python <span class="m">2</span>.7.12, pytest-3.1.2, py-1.4.34, pluggy-0.4.0
+rootdir: C:<span class="se">\d</span>evelop<span class="se">\t</span>esting-arcpy, inifile:
+collected <span class="m">1</span> items
+
+tests<span class="se">\t</span>est_arcpy_wrapper.py <span class="nv">F</span>
+
+<span class="o">==================================</span> <span class="nv">FAILURES</span> <span class="o">===================================</span>
+______________ TestListDataSources.test_list_single_data_source _______________
+
+<span class="nv">self</span> <span class="o">=</span> &lt;tests.test_arcpy_wrapper.TestListDataSources <span class="nv">testMethod</span><span class="o">=</span>test_list_single_data_source&gt;
+<span class="nv">mock_arcpy</span> <span class="o">=</span> &lt;MagicMock <span class="nv">name</span><span class="o">=</span><span class="s1">&#39;arcpy&#39;</span> <span class="nv">id</span><span class="o">=</span><span class="s1">&#39;107829008&#39;</span>&gt;
+
+   def test_list_single_data_source<span class="o">(</span>self, mock_arcpy<span class="o">)</span>:
+       <span class="nv">data_source</span> <span class="o">=</span> <span class="s1">&#39;layer1&#39;</span>
+
+       <span class="nv">layer</span> <span class="o">=</span> MagicMock<span class="o">()</span>
+       layer.supports.return_value <span class="o">=</span> True
+       layer.workspacePath <span class="o">=</span> data_source
+
+       mock_arcpy.mapping.ListLayers <span class="o">=</span> MagicMock<span class="o">(</span><span class="nv">return_value</span><span class="o">=[</span>layer<span class="o">])</span>
+       <span class="nv">mxd</span> <span class="o">=</span> <span class="o">{}</span>
+       <span class="nv">expected</span> <span class="o">=</span> <span class="o">[</span>data_source<span class="o">]</span>
+       <span class="nv">actual</span> <span class="o">=</span> list_workspaces_for_mxd<span class="o">(</span>mxd<span class="o">)</span>
+
+&gt;       self.assertEqual<span class="o">(</span>actual, expected<span class="o">)</span>
+E       AssertionError:  None !<span class="o">=</span> <span class="o">[</span><span class="s1">&#39;layer1&#39;</span><span class="o">]</span>
+tests<span class="se">\t</span>est_arcpy_wrapper.py:20: <span class="nv">AssertionError</span>
+<span class="o">==========================</span> <span class="m">1</span> failed in <span class="m">4</span>.91 <span class="nv">seconds</span> <span class="o">===========================</span></code></pre></div>
+<p>We implement our business logic:</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">arcpy</span>
+
+<span class="k">def</span> <span class="nf">list_workspaces_for_mxd</span><span class="p">(</span><span class="n">mxd</span><span class="p">):</span>
+    <span class="n">workspaces</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">layers</span> <span class="o">=</span> <span class="n">arcpy</span><span class="o">.</span><span class="n">mapping</span><span class="o">.</span><span class="n">ListLayers</span><span class="p">(</span><span class="n">mxd</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">layer</span><span class="o">.</span><span class="n">supports</span><span class="p">(</span><span class="s2">&#34;WORKSPACEPATH&#34;</span><span class="p">):</span>
+            <span class="n">workspaces</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">workspacePath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">workspaces</span></code></pre></div>
+<p>And the test should pass:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ pytest tests/test_arcpy_wrapper.py
+<span class="o">=============================</span> <span class="nb">test</span> session <span class="nv">starts</span> <span class="o">=============================</span>
+platform win32 -- Python <span class="m">2</span>.7.12, pytest-3.1.2, py-1.4.34, pluggy-0.4.0
+rootdir: C:<span class="se">\d</span>evelop<span class="se">\t</span>esting-arcpy, inifile:
+collected <span class="m">1</span> items
+
+tests<span class="se">\t</span>est_arcpy_wrapper.py .
+
+<span class="o">==========================</span> <span class="m">1</span> passed in <span class="m">4</span>.90 <span class="nv">seconds</span> <span class="o">===========================</span></code></pre></div>
+<p>Now we can do some refactoring, extracting the layer mocking into a helper method.  Then we add another test to remove duplicate layers from our list, which is the real logic we&rsquo;re trying to test:</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">unittest</span> <span class="kn">import</span> <span class="n">TestCase</span>
+<span class="kn">from</span> <span class="nn">mock</span> <span class="kn">import</span> <span class="n">patch</span><span class="p">,</span> <span class="n">MagicMock</span>
+<span class="kn">from</span> <span class="nn">arcpy_wrapper</span> <span class="kn">import</span> <span class="n">list_workspaces_for_mxd</span>
+
+<span class="nd">@patch</span><span class="p">(</span><span class="s1">&#39;my_project.arcpy_helper.arcpy&#39;</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">TestListDataSources</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">create_mock_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">workspace</span><span class="p">):</span>
+        <span class="n">layer</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">()</span>
+        <span class="n">layer</span><span class="o">.</span><span class="n">supports</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">(</span><span class="n">return_value</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">layer</span><span class="o">.</span><span class="n">workspacePath</span> <span class="o">=</span> <span class="n">workspace</span>
+        <span class="k">return</span> <span class="n">layer</span>
+
+    <span class="k">def</span> <span class="nf">test_list_single_data_source</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mock_arcpy</span><span class="p">):</span>
+        <span class="n">data_source</span> <span class="o">=</span> <span class="s1">&#39;layer1&#39;</span>
+        <span class="n">layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_mock_layer</span><span class="p">(</span><span class="n">data_source</span><span class="p">)</span>
+        <span class="n">mock_arcpy</span><span class="o">.</span><span class="n">mapping</span><span class="o">.</span><span class="n">ListLayers</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">(</span><span class="n">return_value</span><span class="o">=</span><span class="p">[</span><span class="n">layer</span><span class="p">])</span>
+        <span class="n">mxd</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">expected</span> <span class="o">=</span> <span class="p">[</span><span class="n">data_source</span><span class="p">]</span>
+        <span class="n">actual</span> <span class="o">=</span> <span class="n">list_workspaces_for_mxd</span><span class="p">(</span><span class="n">mxd</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">expected</span><span class="p">,</span> <span class="n">actual</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">test_lists_unique_data_sources</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mock_arcpy</span><span class="p">):</span>
+        <span class="n">data_source1</span> <span class="o">=</span> <span class="s1">&#39;layer1&#39;</span>
+        <span class="n">data_source2</span> <span class="o">=</span> <span class="s1">&#39;layer2&#39;</span>
+        <span class="n">layer1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_mock_layer</span><span class="p">(</span><span class="n">data_source1</span><span class="p">)</span>
+        <span class="n">layer2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_mock_layer</span><span class="p">(</span><span class="n">data_source2</span><span class="p">)</span>
+        <span class="n">mock_arcpy</span><span class="o">.</span><span class="n">mapping</span><span class="o">.</span><span class="n">ListLayers</span> <span class="o">=</span> <span class="n">MagicMock</span><span class="p">(</span><span class="n">return_value</span><span class="o">=</span><span class="p">[</span><span class="n">layer1</span><span class="p">,</span> <span class="n">layer1</span><span class="p">,</span> <span class="n">layer2</span><span class="p">])</span>
+        <span class="n">expected</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">data_source2</span><span class="p">,</span> <span class="n">data_source1</span><span class="p">])</span>
+        <span class="n">actual</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">list_workspaces_for_mxd</span><span class="p">({}))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">expected</span><span class="p">,</span> <span class="n">actual</span><span class="p">)</span></code></pre></div>
+<p>This will fail, since we have a duplicate layer:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ pytest tests/test_arcpy_wrapper.py
+<span class="o">=============================</span> <span class="nb">test</span> session <span class="nv">starts</span> <span class="o">=============================</span>
+platform win32 -- Python <span class="m">2</span>.7.12, pytest-3.1.2, py-1.4.34, pluggy-0.4.0
+rootdir: C:<span class="se">\d</span>evelop<span class="se">\t</span>esting-arcpy, inifile:
+collected <span class="m">2</span> items
+
+tests<span class="se">\t</span>est_arcpy_wrapper.py .F
+
+<span class="o">==================================</span> <span class="nv">FAILURES</span> <span class="o">===================================</span>
+_____________ TestListDataSources.test_lists_unique_data_sources ______________
+
+<span class="nv">self</span> <span class="o">=</span> &lt;tests.test_arcpy_wrapper.TestListDataSources <span class="nv">testMethod</span><span class="o">=</span>test_lists_unique_data_sources&gt;
+<span class="nv">mock_arcpy</span> <span class="o">=</span> &lt;MagicMock <span class="nv">name</span><span class="o">=</span><span class="s1">&#39;arcpy&#39;</span> <span class="nv">id</span><span class="o">=</span><span class="s1">&#39;106170320&#39;</span>&gt;
+
+   def test_lists_unique_data_sources<span class="o">(</span>self, mock_arcpy<span class="o">)</span>:
+       <span class="nv">data_source1</span> <span class="o">=</span> <span class="s1">&#39;layer1&#39;</span>
+       <span class="nv">data_source2</span> <span class="o">=</span> <span class="s1">&#39;layer2&#39;</span>
+       <span class="nv">layer1</span> <span class="o">=</span> self.create_mock_layer<span class="o">(</span>data_source1<span class="o">)</span>
+       <span class="nv">layer2</span> <span class="o">=</span> self.create_mock_layer<span class="o">(</span>data_source2<span class="o">)</span>
+       mock_arcpy.mapping.ListLayers <span class="o">=</span> MagicMock<span class="o">(</span><span class="nv">return_value</span><span class="o">=[</span>layer1, layer1, layer2<span class="o">])</span>
+       <span class="nv">expected</span> <span class="o">=</span> sorted<span class="o">([</span>data_source2, data_source1<span class="o">])</span>
+       <span class="nv">actual</span> <span class="o">=</span> sorted<span class="o">(</span>list_workspaces_for_mxd<span class="o">({}))</span>
+&gt;       self.assertEqual<span class="o">(</span>expected, actual<span class="o">)</span>
+E       AssertionError: Lists differ: <span class="o">[</span><span class="s1">&#39;layer1&#39;</span>, <span class="s1">&#39;layer2&#39;</span><span class="o">]</span> !<span class="o">=</span> <span class="o">[</span><span class="s1">&#39;layer1&#39;</span>, <span class="s1">&#39;layer1&#39;</span>, <span class="s1">&#39;layer2&#39;</span><span class="o">]</span>
+E
+E       First differing element <span class="m">1</span>:
+E       <span class="s1">&#39;layer2&#39;</span>
+E       <span class="s1">&#39;layer1&#39;</span>
+E
+E       Second list contains <span class="m">1</span> additional elements.
+E       First extra element <span class="m">2</span>:
+E       <span class="s1">&#39;layer2&#39;</span>
+E
+E       - <span class="o">[</span><span class="s1">&#39;layer1&#39;</span>, <span class="s1">&#39;layer2&#39;</span><span class="o">]</span>
+E       + <span class="o">[</span><span class="s1">&#39;layer1&#39;</span>, <span class="s1">&#39;layer1&#39;</span>, <span class="s1">&#39;layer2&#39;</span><span class="o">]</span>
+E       ?            ++++++++++
+
+tests<span class="se">\t</span>est_arcpy_wrapper.py:31: <span class="nv">AssertionError</span>
+<span class="o">=====================</span> <span class="m">1</span> failed, <span class="m">1</span> passed in <span class="m">5</span>.26 <span class="nv">seconds</span> <span class="o">======================</span></code></pre></div>
+<p>We need to add something to our business logic to remove duplicates; the easiest way is by using a <code>set</code>:</p>
+<div class="highlight"><pre class="chroma"><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">arcpy</span>
+
+<span class="k">def</span> <span class="nf">list_workspaces_for_mxd</span><span class="p">(</span><span class="n">mxd</span><span class="p">):</span>
+    <span class="n">workspaces</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">layers</span> <span class="o">=</span> <span class="n">arcpy</span><span class="o">.</span><span class="n">mapping</span><span class="o">.</span><span class="n">ListLayers</span><span class="p">(</span><span class="n">mxd</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="n">layers</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">layer</span><span class="o">.</span><span class="n">supports</span><span class="p">(</span><span class="s2">&#34;WORKSPACEPATH&#34;</span><span class="p">):</span>
+            <span class="n">workspaces</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">workspacePath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">workspaces</span><span class="p">)</span></code></pre></div>
+<p>And now everything is green:</p>
+<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">$ pytest tests/test_arcpy_wrapper.py
+<span class="o">=============================</span> <span class="nb">test</span> session <span class="nv">starts</span> <span class="o">=============================</span>
+platform win32 -- Python <span class="m">2</span>.7.12, pytest-3.1.2, py-1.4.34, pluggy-0.4.0
+rootdir: C:<span class="se">\d</span>evelop<span class="se">\t</span>esting-arcpy, inifile:
+collected <span class="m">2</span> items
+
+tests<span class="se">\t</span>est_arcpy_wrapper.py ..
+
+<span class="o">==========================</span> <span class="m">2</span> passed in <span class="m">5</span>.20 <span class="nv">seconds</span> <span class="o">===========================</span></code></pre></div>
+<p>In general, we don&rsquo;t want to lean heavily on mocks; for cases where extensive mocking is needed, integration tests with real MXDs, etc. as fixtures may be a better alternative.  But when we have significant amounts of business logic to test, together with a few arcpy objects, mocking can be a good solution.</p>
+
+<p>All of the examples shown here are available on <a href="https://github.com/lobsteropteryx/testing-arcpy">github</a>.</p>
+
+
+			
+				<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "notesfromthelifeboat" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+			
+		</section>
+	</article>
+	</div>
+
+	<footer class="site-footer">
+	<p class="text">&copy; 2020 - Released under the MIT license<br>Powered by <a href="//gohugo.io/">Hugo</a> with the <a href="//github.com/digitalcraftsman/hugo-type-theme">Type Theme</a></p>
+</footer>
+
+
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-27980065-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+</body>
+</html>

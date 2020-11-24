@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>
+	<title>Automating Analysis Services Tabular Projects - Part 2: Testing&middot; Notes from the Lifeboat</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="author" content="Ian Firkin">
+	<meta name="description" content="Dim interlocutions">
+	
+	<meta name="generator" content="Hugo 0.42" />
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/main.css">
+	<link rel="stylesheet" href="https://notesfromthelifeboat.com/css/syntax.css">
+
+	<!--Favicon-->
+	<link rel="shortcut icon" href="https://notesfromthelifeboat.com/favicon.ico" type="image/x-icon">
+
+	<!-- RSS -->
+	
+
+	<!-- Font Awesome -->
+	<link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+	<!-- Google Fonts -->
+	<link href="//fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,700italic,400italic" rel="stylesheet" type="text/css">
+
+	<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/styles/default.min.css">
+	<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.10.0/highlight.min.js"></script>
+	<script>hljs.initHighlightingOnLoad();</script>
+</head>
+
+<body>
+	<header class="site-header">
+	<div class="branding">
+		<a href="https://notesfromthelifeboat.com/">
+		<img class="avatar" src="https://notesfromthelifeboat.com/img/avatar.png" alt=""/>
+		</a>
+		<h1 class="site-title">
+			<a href="https://notesfromthelifeboat.com/">Notes from the Lifeboat</a>
+		</h1>
+	</div>
+	<nav class="site-nav">
+		<ul>
+			<li><a href="/about/"> About </a></li>
+
+			<li class="icon">
+	<a href="https://notesfromthelifeboat.com/" title="">
+		<i class="fa fa-fw fa-home"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="https://notesfromthelifeboat.com/index.xml" title="Subcribe">
+		<i class="fa fa-fw fa-rss"></i>
+	</a>
+</li>
+
+<li class="icon">
+	<a href="mailto:ian.firkin@gmail.com" title="Email">
+		<i class="fa fa-fw fa-envelope"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://github.com/lobsteropteryx" title="GitHub">
+		<i class="fa fa-fw fa-github"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<li class="icon">
+	<a href="https://twitter.com/lobsteropteryx" title="Twitter">
+		<i class="fa fa-fw fa-twitter"></i>
+	</a>
+</li>
+
+
+
+
+
+
+
+
+
+		</ul>
+	</nav>
+</header>
+
+
+	<div class="content">
+	<article>
+		<header>
+			<h1 class="title">Automating Analysis Services Tabular Projects - Part 2: Testing</h1>
+			<p class="meta">
+	January 7, 2018 &middot; 8 minute read
+
+	
+</p>
+
+		</header>
+
+		<section class="post-content">
+			
+
+<p>The past few weeks at <a href="https://www.proactivedigitalinsights.com/">work</a>, I&rsquo;ve been building out a process for automation of a Microsoft <a href="https://docs.microsoft.com/en-us/sql/analysis-services/tabular-models/tabular-models-ssas">Tabular Model</a> project; in a <a href="/post/analysis-services-1-deployment">previous post</a> I described how we automated the deployment process, and this post will focus on testing.  A full, working sample project is available on <a href="https://github.com/lobsteropteryx/tabular-example">GitHub</a>.</p>
+
+<h2 id="the-problem-testing-measures">The Problem: Testing Measures</h2>
+
+<p>In SQL terms, a <a href="https://docs.microsoft.com/en-us/sql/analysis-services/tabular-models/measures-ssas-tabular">measure</a> is somewhere between a view and an analytic function; it&rsquo;s a calculation used to dynamically aggregate and filter report tables, and it can contain a fair bit of logic.  Measures can also depend on other measures, and they&rsquo;re often used to encapsulate logic, even if they won&rsquo;t be exposed directly to the end user.</p>
+
+<p>In our case, we needed to work closely with business analysts to define the measures in business terms, ensure that they were implemented correctly, and protect ourselves from regressions as we build out additional reporting.  We knew from the start that we wanted a <a href="https://en.wikipedia.org/wiki/Behavior-driven_development">BDD</a>-style approach, and we settled on <a href="http://specflow.org/">SpecFlow</a> as our test framework.</p>
+
+<h2 id="testing-process">Testing Process</h2>
+
+<p>There are six steps that need to be performed for each test scenario:</p>
+
+<ul>
+<li>Ensure that the database is in a clean (empty) state</li>
+<li>Load a small, known data set into the proper database tables</li>
+<li>Build and deploy the Tabular Model to an SSAS instance</li>
+<li>Process the Tabular Model against the database</li>
+<li>Query the measure under test</li>
+<li>Compare the query results to the expected values</li>
+</ul>
+
+<p>To accomplish these tasks, we divided the work into three logical pieces:  A testing framework to do data comparisons, a helper module to interact with the SQL Server database, and a second helper to interact with the Tabular Model.</p>
+
+<p>We want to run all of our tests locally, so we need to have both SQL Server and Analysis Services instances running on <code>localhost</code>; Both of these are freely available in the <a href="https://www.microsoft.com/en-us/sql-server/sql-server-downloads">developer edition</a> of SQL Server.</p>
+
+<h2 id="testing-framework">Testing Framework</h2>
+
+<p>If you aren&rsquo;t familiar with BDD or SpecFlow, there is a nice walkthough <a href="https://specflow.org/getting-started/">here</a>.  Essentially we&rsquo;ll describe the desired behavior in plain text, using <a href="https://cucumber.io/docs/reference">Gherkin</a>; an individual test case is known as a Scenario, and multiple Scenarios are grouped into a Feature.</p>
+
+<p>Each Scenario has multiple Steps, and each Step will be implmented using our programming language of choice&ndash;in this case, C#.</p>
+
+<h3 id="feature">Feature</h3>
+
+<p>In the example project, our measure is a simple average.  The gherkin for a very basic test case might look like this:</p>
+<div class="highlight"><pre class="chroma"><code class="language-cucumber" data-lang="cucumber">Feature: AverageAge
+    Calculating the average age of people
+
+Scenario: A single person
+	Given I have persons:
+	| Name | Age |
+	| Bob  | 5   |
+	When I query for average age
+	Then I expect the result to be:
+	| Average     |
+	| 5           |</code></pre></div>
+<p>This scenario has three Steps&ndash;a <code>Given</code>, a <code>When</code>, and a <code>Then</code>.  We can have Visual Studio generate empty step definitions for us automatically, and fill in the implementation details.</p>
+
+<h3 id="steps">Steps</h3>
+
+<p>When testing Tabular measures, our Step implementations will be very similar across Scenarios and even Features&ndash;<code>Given</code> will be inserting data into the SQL database and refreshing the Tabular model; <code>When</code> will correspond to a query against the model, and <code>Then</code> will be comparing the query result against the expected values.</p>
+
+<p>It&rsquo;s normal to re-use Step definitions across Scenarios; since each of our Features will be testing a single measure, we&rsquo;ll typically have many scenarios that use the exact same steps, where the only difference is in the data.  To see an example of this, look at the <a href="https://github.com/lobsteropteryx/tabular-example/blob/master/TestExample/AverageAge.feature">Feature</a> and <a href="https://github.com/lobsteropteryx/tabular-example/blob/master/TestExample/AverageAgeSteps.cs">Steps</a> for calculating average age.</p>
+
+<p>Since we&rsquo;ll be doing the same interactions over and over again, it makes sense to extract out the common logic into a couple of helper classes&ndash;one for inserting data into the SQL database, and the second for querying data back out of the Tabular model.</p>
+
+<h2 id="interacting-with-the-database">Interacting with the Database</h2>
+
+<p>The local SQL Server instance will act as the data source for our Tabular Model; in order to set up our tests, we need two things:  A way to set up our initial schema, and a way to manipulate data in the database.</p>
+
+<h3 id="schema-migration">Schema Migration</h3>
+
+<p>The first thing we need is do build an empty database with the proper tables.  There are various ways to handle database migration, and the method you choose has no real effect on the rest of the testing pipeline; the only requirement is that the schema of the test database should match whatever is being used in production.</p>
+
+<p>We use <a href="https://pypi.python.org/pypi/alembic">alembic</a>, but a <a href="https://msdn.microsoft.com/en-us/library/hh272677(v=vs.103).aspx">Database Project</a> or <a href="https://msdn.microsoft.com/en-us/library/jj591621(v=vs.113).aspx">Entity Framework</a> would work just as well.  Technically you could do this step by hand, and create the database as a one-off import, but if you aren&rsquo;t doing your database migrations in a repeatable way, you probably should be!</p>
+
+<h3 id="loading-data">Loading Data</h3>
+
+<p>Once we have our schema in place, we need a way to delete and insert data into our tables.  The <a href="https://github.com/lobsteropteryx/tabular-example/blob/master/TestExample/SqlHelper.cs">example</a> uses a basic <code>SqlCommand</code>, but the details don&rsquo;t matter; EntityFramework or a micro-ORM would work just as well.  The only critical piece here is that we need to be able to expose our implementation to the test framework via <a href="http://specflow.org/documentation/Context-Injection/">context injection</a>.</p>
+
+<h2 id="interacting-with-the-tabular-model">Interacting with the Tabular Model</h2>
+
+<p>To refresh and query the Tabular Model, we use the <a href="https://msdn.microsoft.com/en-us/library/microsoft.analysisservices.adomdclient.aspx">ADOMDClient</a> library, which exposes a familiar set of interfaces (<code>Connection</code>, <code>Command</code>, <code>Adapter</code>, etc) for interacting with tabular data.</p>
+
+<p>Note:  We needed to install the <a href="https://github.com/ogaudefroy/Unofficial.Microsoft.AnalysisServices.AdomdClient">unofficial version</a> of the package, as outlined <a href="https://stackoverflow.com/a/44896064">here</a>.</p>
+
+<p>Similar to the SQL Server module, we want to share this package among our test package;  in the example project, both the <a href="https://github.com/lobsteropteryx/tabular-example/blob/master/TestExample/SqlHelper.cs"><code>SQLHelper</code></a> and <a href="https://github.com/lobsteropteryx/tabular-example/blob/master/TestExample/TabularHelper.cs"><code>TabularHelper</code></a> modules are injected via the <a href="https://github.com/lobsteropteryx/tabular-example/blob/master/TestExample/ConnectionSupport.cs">ConnectionSupport</a> class.</p>
+
+<h3 id="refreshing-the-model">Refreshing the Model</h3>
+
+<p>The ADOMD client can execute <a href="https://docs.microsoft.com/en-us/sql/analysis-services/tabular-model-scripting-language-tmsl-reference">commands</a> directly against the model, in either XMLA or TMSL; to refresh (or &ldquo;process&rdquo;) our Tabular Model, we use a simple <a href="https://github.com/lobsteropteryx/tabular-example/blob/master/TestExample/TabularHelper.cs#L36">helper function</a>.</p>
+
+<h3 id="querying-the-measure-under-test">Querying the Measure under Test</h3>
+
+<p>Once we&rsquo;ve loaded our test data, we want to query whichever measure we&rsquo;re testing, and check the output against our expected values.  Because there&rsquo;s we&rsquo;re only interested in the data itself (there&rsquo;s no real business logic), we opted to use a simple <code>DataTable</code> to return the data.</p>
+
+<p>In the example project, there&rsquo;s a <a href="https://github.com/lobsteropteryx/tabular-example/blob/master/TestExample/TabularHelper.cs#L22">single method</a> which executes an arbitrary DAX query and returns a <code>DataTable</code> object; you can easily flesh out the <code>TabularHelper</code> with additional query methods, to better encapsulate the query logic.</p>
+
+<h2 id="running-the-test-suite">Running the Test Suite</h2>
+
+<p>Now that we have our tests and helper modules in place, we need to build and deploy our model, then execute the test suite.  The build and deploy process is the same as outlined in the <a href="/post/analysis-services-1-deployment">previous post</a>.  We typically run our tests via a PowerShell script, but you can also run them from Visual Studio itself, using the <a href="https://specflow.org/documentation/Install-IDE-Integration/">IDE Integration</a>.</p>
+
+<h3 id="configuring-connection-strings">Configuring Connection Strings</h3>
+
+<p>Assuming that we have local copies of both the database and Tabular model, the last thing we need to do is inject the proper connection strings to our helper modules.  We used environment variables to do this, but a config file could also work.</p>
+
+<p>To set up the proper environment variables, execute the following:</p>
+<div class="highlight"><pre class="chroma"><code class="language-powershell" data-lang="powershell"><span class="nv">$env:TabularAcceptanceTestAnalysisServicesConnectionString</span> <span class="p">=</span> <span class="s2">&#34;Data Source=localhost;Catalog=validation;User ID=test_ssas;Password=test_ssas&#34;</span>
+
+<span class="nv">$env:TabularAcceptanceTestSqlConnectionString</span> <span class="p">=</span> <span class="s2">&#34;Server=localhost;Database=validation;User ID=test;Password=test;&#34;</span></code></pre></div>
+<p>Note that if you want to run the tests from Visual Studio, you&rsquo;ll need these environment variables set in the process where Visual Studio is running; one way to do this is to launch Visual Studio from a shell with the appropriate variables set:</p>
+<div class="highlight"><pre class="chroma"><code class="language-powershell" data-lang="powershell"><span class="s1">&#39;C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\devenv.exe&#39;</span></code></pre></div>
+<h3 id="running-the-tests">Running the tests</h3>
+
+<p>Once the environment is set up, you can execute the scripts to build and deploy the model, then run the test suite:</p>
+<div class="highlight"><pre class="chroma"><code class="language-powershell" data-lang="powershell"><span class="p">.\</span><span class="n">deploy_model</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-workspace</span> <span class="n">c</span><span class="err">:</span><span class="p">/</span><span class="n">develop</span><span class="p">/</span><span class="n">tabular-automation</span> <span class="n">-environment</span> <span class="n">validation</span> <span class="n">-analysisServicesUsername</span> <span class="n">test_ssas</span> <span class="n">-analysisServicesPassword</span> <span class="n">test_ssas</span></code></pre></div><div class="highlight"><pre class="chroma"><code class="language-powershell" data-lang="powershell"><span class="p">.\</span><span class="n">run_validation</span><span class="p">.</span><span class="n">ps1</span> <span class="n">-databaseUsername</span> <span class="n">test</span> <span class="n">-databasePassword</span> <span class="n">test</span> <span class="n">-analysisServicesUsername</span> <span class="n">test_ssas</span> <span class="n">-analysisServicesPassword</span> <span class="n">test_ssas</span></code></pre></div>
+<p>You should see output like the following:</p>
+<div class="highlight"><pre class="chroma"><code class="language-powershell" data-lang="powershell"><span class="n">NUnit</span> <span class="n">Console</span> <span class="n">Runner</span> <span class="n">3</span><span class="p">.</span><span class="n">7</span><span class="p">.</span><span class="n">0</span>
+<span class="n">Copyright</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">2017</span> <span class="n">Charlie</span> <span class="n">Poole</span><span class="p">,</span> <span class="n">Rob</span> <span class="n">Prouse</span>
+
+<span class="n">Runtime</span> <span class="n">Environment</span>
+   <span class="n">OS</span> <span class="n">Version</span><span class="err">:</span> <span class="n">Microsoft</span> <span class="n">Windows</span> <span class="n">NT</span> <span class="n">10</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">16299</span><span class="p">.</span><span class="n">0</span>
+  <span class="n">CLR</span> <span class="n">Version</span><span class="err">:</span> <span class="n">4</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">30319</span><span class="p">.</span><span class="n">42000</span>
+
+<span class="n">Test</span> <span class="n">Files</span>
+    <span class="n">TestExample</span><span class="p">\</span><span class="n">TestExample</span><span class="p">.</span><span class="n">csproj</span>
+
+<span class="p">=&gt;</span> <span class="n">TestExample</span><span class="p">.</span><span class="n">AverageAgeFeature</span><span class="p">.</span><span class="n">ASinglePerson</span>
+<span class="n">Given</span> <span class="n">I</span> <span class="n">have</span> <span class="n">persons</span><span class="err">:</span>
+  <span class="p">---</span> <span class="n">table</span> <span class="n">step</span> <span class="n">argument</span> <span class="p">---</span>
+  <span class="p">|</span> <span class="n">Name</span> <span class="p">|</span> <span class="n">Age</span> <span class="p">|</span>
+  <span class="p">|</span> <span class="n">Bob</span>  <span class="p">|</span> <span class="n">5</span>   <span class="p">|</span>
+<span class="p">-&gt;</span> <span class="n">done</span><span class="err">:</span> <span class="n">AverageAgeSteps</span><span class="p">.</span><span class="n">GivenIHavePersons</span><span class="p">(&lt;</span><span class="n">table</span><span class="p">&gt;)</span> <span class="p">(</span><span class="n">3</span><span class="p">.</span><span class="n">5s</span><span class="p">)</span>
+<span class="n">When</span> <span class="n">I</span> <span class="n">query</span> <span class="k">for</span> <span class="n">average</span> <span class="n">age</span>
+<span class="p">-&gt;</span> <span class="n">done</span><span class="err">:</span> <span class="n">AverageAgeSteps</span><span class="p">.</span><span class="n">WhenIQueryForAverageAge</span><span class="p">()</span> <span class="p">(</span><span class="n">0</span><span class="p">.</span><span class="n">2s</span><span class="p">)</span>
+<span class="n">Then</span> <span class="n">I</span> <span class="n">expect</span> <span class="n">the</span> <span class="n">result</span> <span class="n">to</span> <span class="n">be</span><span class="err">:</span>
+  <span class="p">---</span> <span class="n">table</span> <span class="n">step</span> <span class="n">argument</span> <span class="p">---</span>
+  <span class="p">|</span> <span class="n">Average</span> <span class="p">|</span>
+  <span class="p">|</span> <span class="n">5</span>       <span class="p">|</span>
+<span class="p">-&gt;</span> <span class="n">done</span><span class="err">:</span> <span class="n">AverageAgeSteps</span><span class="p">.</span><span class="n">ThenIExpectTheResultToBe</span><span class="p">(&lt;</span><span class="n">table</span><span class="p">&gt;)</span> <span class="p">(</span><span class="n">0</span><span class="p">.</span><span class="n">0s</span><span class="p">)</span>
+<span class="p">=&gt;</span> <span class="n">TestExample</span><span class="p">.</span><span class="n">AverageAgeFeature</span><span class="p">.</span><span class="n">BlankAgesAreTreatedAsZero</span>
+<span class="n">Given</span> <span class="n">I</span> <span class="n">have</span> <span class="n">persons</span><span class="err">:</span>
+  <span class="p">---</span> <span class="n">table</span> <span class="n">step</span> <span class="n">argument</span> <span class="p">---</span>
+  <span class="p">|</span> <span class="n">Name</span> <span class="p">|</span> <span class="n">Age</span> <span class="p">|</span>
+  <span class="p">|</span> <span class="n">Bob</span>  <span class="p">|</span> <span class="n">5</span>   <span class="p">|</span>
+  <span class="p">|</span> <span class="n">Jane</span> <span class="p">|</span>     <span class="p">|</span>
+<span class="p">-&gt;</span> <span class="n">done</span><span class="err">:</span> <span class="n">AverageAgeSteps</span><span class="p">.</span><span class="n">GivenIHavePersons</span><span class="p">(&lt;</span><span class="n">table</span><span class="p">&gt;)</span> <span class="p">(</span><span class="n">0</span><span class="p">.</span><span class="n">3s</span><span class="p">)</span>
+<span class="n">When</span> <span class="n">I</span> <span class="n">query</span> <span class="k">for</span> <span class="n">average</span> <span class="n">age</span>
+<span class="p">-&gt;</span> <span class="n">done</span><span class="err">:</span> <span class="n">AverageAgeSteps</span><span class="p">.</span><span class="n">WhenIQueryForAverageAge</span><span class="p">()</span> <span class="p">(</span><span class="n">0</span><span class="p">.</span><span class="n">0s</span><span class="p">)</span>
+<span class="n">Then</span> <span class="n">I</span> <span class="n">expect</span> <span class="n">the</span> <span class="n">result</span> <span class="n">to</span> <span class="n">be</span><span class="err">:</span>
+  <span class="p">---</span> <span class="n">table</span> <span class="n">step</span> <span class="n">argument</span> <span class="p">---</span>
+  <span class="p">|</span> <span class="n">Average</span> <span class="p">|</span>
+  <span class="p">|</span> <span class="n">2</span><span class="p">.</span><span class="n">5</span>     <span class="p">|</span>
+<span class="p">-&gt;</span> <span class="n">done</span><span class="err">:</span> <span class="n">AverageAgeSteps</span><span class="p">.</span><span class="n">ThenIExpectTheResultToBe</span><span class="p">(&lt;</span><span class="n">table</span><span class="p">&gt;)</span> <span class="p">(</span><span class="n">0</span><span class="p">.</span><span class="n">0s</span><span class="p">)</span>
+<span class="p">=&gt;</span> <span class="n">TestExample</span><span class="p">.</span><span class="n">AverageAgeFeature</span><span class="p">.</span><span class="n">TwoPeopleWithTheSameAge</span>
+<span class="n">Given</span> <span class="n">I</span> <span class="n">have</span> <span class="n">persons</span><span class="err">:</span>
+  <span class="p">---</span> <span class="n">table</span> <span class="n">step</span> <span class="n">argument</span> <span class="p">---</span>
+  <span class="p">|</span> <span class="n">Name</span> <span class="p">|</span> <span class="n">Age</span> <span class="p">|</span>
+  <span class="p">|</span> <span class="n">Bob</span>  <span class="p">|</span> <span class="n">5</span>   <span class="p">|</span>
+  <span class="p">|</span> <span class="n">Jane</span> <span class="p">|</span> <span class="n">5</span>   <span class="p">|</span>
+<span class="p">-&gt;</span> <span class="n">done</span><span class="err">:</span> <span class="n">AverageAgeSteps</span><span class="p">.</span><span class="n">GivenIHavePersons</span><span class="p">(&lt;</span><span class="n">table</span><span class="p">&gt;)</span> <span class="p">(</span><span class="n">0</span><span class="p">.</span><span class="n">2s</span><span class="p">)</span>
+<span class="n">When</span> <span class="n">I</span> <span class="n">query</span> <span class="k">for</span> <span class="n">average</span> <span class="n">age</span>
+<span class="p">-&gt;</span> <span class="n">done</span><span class="err">:</span> <span class="n">AverageAgeSteps</span><span class="p">.</span><span class="n">WhenIQueryForAverageAge</span><span class="p">()</span> <span class="p">(</span><span class="n">0</span><span class="p">.</span><span class="n">0s</span><span class="p">)</span>
+<span class="n">Then</span> <span class="n">I</span> <span class="n">expect</span> <span class="n">the</span> <span class="n">result</span> <span class="n">to</span> <span class="n">be</span><span class="err">:</span>
+  <span class="p">---</span> <span class="n">table</span> <span class="n">step</span> <span class="n">argument</span> <span class="p">---</span>
+  <span class="p">|</span> <span class="n">Average</span> <span class="p">|</span>
+  <span class="p">|</span> <span class="n">5</span>       <span class="p">|</span>
+<span class="p">-&gt;</span> <span class="n">done</span><span class="err">:</span> <span class="n">AverageAgeSteps</span><span class="p">.</span><span class="n">ThenIExpectTheResultToBe</span><span class="p">(&lt;</span><span class="n">table</span><span class="p">&gt;)</span> <span class="p">(</span><span class="n">0</span><span class="p">.</span><span class="n">0s</span><span class="p">)</span>
+<span class="p">=&gt;</span> <span class="n">TestExample</span><span class="p">.</span><span class="n">AverageAgeFeature</span>
+<span class="p">-&gt;</span> <span class="n">Using</span> <span class="n">app</span><span class="p">.</span><span class="n">config</span>
+
+<span class="n">Run</span> <span class="n">Settings</span>
+    <span class="n">BasePath</span><span class="err">:</span> <span class="n">C</span><span class="err">:</span><span class="p">\</span><span class="n">develop</span><span class="p">\</span><span class="n">tabular-automation</span><span class="p">\</span><span class="n">TestExample</span><span class="p">\</span><span class="n">bin</span><span class="p">\</span><span class="n">Debug</span><span class="p">\</span>
+    <span class="n">DisposeRunners</span><span class="err">:</span> <span class="n">True</span>
+    <span class="n">WorkDirectory</span><span class="err">:</span> <span class="n">C</span><span class="err">:</span><span class="p">\</span><span class="n">develop</span><span class="p">\</span><span class="n">tabular-automation</span>
+    <span class="n">ImageRuntimeVersion</span><span class="err">:</span> <span class="n">4</span><span class="p">.</span><span class="n">0</span><span class="p">.</span><span class="n">30319</span>
+    <span class="n">ImageTargetFrameworkName</span><span class="err">:</span> <span class="p">.</span><span class="n">NETFramework</span><span class="p">,</span><span class="n">Version</span><span class="p">=</span><span class="n">v4</span><span class="p">.</span><span class="n">5</span><span class="p">.</span><span class="n">2</span>
+    <span class="n">ImageRequiresX86</span><span class="err">:</span> <span class="n">False</span>
+    <span class="n">ImageRequiresDefaultAppDomainAssemblyResolver</span><span class="err">:</span> <span class="n">False</span>
+    <span class="n">NumberOfTestWorkers</span><span class="err">:</span> <span class="n">2</span>
+
+<span class="n">Test</span> <span class="n">Run</span> <span class="n">Summary</span>
+  <span class="n">Overall</span> <span class="n">result</span><span class="err">:</span> <span class="n">Passed</span>
+  <span class="n">Test</span> <span class="n">Count</span><span class="err">:</span> <span class="n">3</span><span class="p">,</span> <span class="n">Passed</span><span class="err">:</span> <span class="n">3</span><span class="p">,</span> <span class="n">Failed</span><span class="err">:</span> <span class="n">0</span><span class="p">,</span> <span class="n">Warnings</span><span class="err">:</span> <span class="n">0</span><span class="p">,</span> <span class="n">Inconclusive</span><span class="err">:</span> <span class="n">0</span><span class="p">,</span> <span class="n">Skipped</span><span class="err">:</span> <span class="n">0</span>
+  <span class="n">Start</span> <span class="n">time</span><span class="err">:</span> <span class="n">2018</span><span class="p">-</span><span class="n">01</span><span class="p">-</span><span class="n">07</span> <span class="n">17</span><span class="err">:</span><span class="n">11</span><span class="err">:</span><span class="n">56Z</span>
+    <span class="k">End</span> <span class="n">time</span><span class="err">:</span> <span class="n">2018</span><span class="p">-</span><span class="n">01</span><span class="p">-</span><span class="n">07</span> <span class="n">17</span><span class="err">:</span><span class="n">12</span><span class="err">:</span><span class="n">02Z</span>
+    <span class="n">Duration</span><span class="err">:</span> <span class="n">5</span><span class="p">.</span><span class="n">872</span> <span class="n">seconds</span>
+
+<span class="n">Results</span> <span class="p">(</span><span class="n">nunit3</span><span class="p">)</span> <span class="n">saved</span> <span class="n">as</span> <span class="n">TestResult</span><span class="p">.</span><span class="n">xml</span></code></pre></div>
+<h2 id="the-end-result">The End Result</h2>
+
+<p>Once we have the deployment and test scripts in place, we can integrate them with a CI server to set up a deployment pipeline.  To do this, we first deploy the new version of the model to a dedicated <code>validation</code> environment where the automated test suite is run; if all the tests pass, we automatically build and deploy again, this time to a staging environment.  In the staging environment, analysts can interact with the Tabular model through front-end tools like PowerBI; once the changes have been approved, we can promote the new version of the model to production.</p>
+
+
+			
+				<div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "notesfromthelifeboat" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+			
+		</section>
+	</article>
+	</div>
+
+	<footer class="site-footer">
+	<p class="text">&copy; 2020 - Released under the MIT license<br>Powered by <a href="//gohugo.io/">Hugo</a> with the <a href="//github.com/digitalcraftsman/hugo-type-theme">Type Theme</a></p>
+</footer>
+
+
+<script>
+var doNotTrack = false;
+if (!doNotTrack) {
+	(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+	ga('create', 'UA-27980065-1', 'auto');
+	
+	ga('send', 'pageview');
+}
+</script>
+
+</body>
+</html>
