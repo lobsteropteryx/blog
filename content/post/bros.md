@@ -20,7 +20,7 @@ Anyways.
 
 The last thing I needed to do before I could test the pump was build an idler pulley to tension the two-hundred-and-nine inch belt that drives this thing.  I had built the arm, pivot, and pulley assembly, I just needed a spring to tension it.
 
-There's a little hardware store in town, and they carry a variety of springs of different lengths and tensions.  And here comes the important part.
+There's a little hardware store in town, and they carry a variety of springs of different lengths and tensions.  Here comes the important part.
 
 Now, this house is really only about a half a mile from the hardware store, as the Ian walks.  The backyard is quite big, and at one end of it is a woods, with a shed and a bunch of old stuff that farmers never throw away back there.  Cue photographs.
 
