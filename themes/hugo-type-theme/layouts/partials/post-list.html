@@ -17,8 +17,9 @@
 			{{- else -}}
 				{{ .Summary }}
 			{{- end }}
-			<img class="thumbnail" src="{{ with .Params.thumb }}{{ . }}{{ end }}" />
-
+			<a class="post-link" href="{{ .Permalink }}">
+				<img class="thumbnail" src="{{ with .Params.thumb }}{{ . }}{{ end }}" />
+			</a>
 			<br>
 			<a class="button" href="{{ .Permalink }}">
 				{{ .Site.Data.l10n.continueReading }}
