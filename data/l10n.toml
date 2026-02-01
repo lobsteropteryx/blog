@@ -4,7 +4,7 @@ next = "Next"
 
 # Post list
 readingTime = "minute read" # e.g. 3 minute read
-continueReading = "Continue reading"
+continueReading = "View Post"
 
 # 404.html
 pageNotFoundTitle = "Page not found"
