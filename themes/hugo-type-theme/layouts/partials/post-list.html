@@ -17,6 +17,7 @@
 			{{- else -}}
 				{{ .Summary }}
 			{{- end }}
+			<img class="thumbnail" src="{{ with .Params.thumb }}{{ . }}{{ end }}" />
 
 			<br>
 			<a class="button" href="{{ .Permalink }}">
